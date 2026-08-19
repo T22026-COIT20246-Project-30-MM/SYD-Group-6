@@ -1,10 +1,10 @@
 # COIT20246 Cyber Security and Networking Project
 
 - Group Number:
-- Student 1: name (ID)
-- Student 2: name (ID)
-- Campus:
-- Tutor:
+- Student 1: Atikur Rahman Mimmoy (ID)
+- Student 2: Md Arman Joarder (12312653)
+- Campus: SYD
+- Tutor: Dr. Mohammad Mohammad
 
 ## Project Report
 
