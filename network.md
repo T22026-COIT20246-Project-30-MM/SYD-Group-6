@@ -189,3 +189,290 @@ We confirmed basic network connectivity between the Windows host and OpenWRT wit
 ![Ping test](images/ping-test.png)
 
 A successful reply from 192.168.56.2 shows that the two machines are on the same host-only subnet and that ICMP traffic is permitted. This is the baseline behaviour we later change in firewall rule 3 (Section 4.3), where blocking ICMP causes this same ping to fail.
+
+## 4. Firewall Configuration
+
+We configured and tested four firewall rules on OpenWRT. For each rule we show the behaviour before the rule, the firewall configuration itself, and the behaviour after the rule is applied.
+
+### 4.0 Preparation — Assigning the Management Network to a Firewall Zone
+
+Before writing any rules we examined the existing firewall configuration with `uci show firewall`. This revealed two problems that would have made our rules ineffective if we had not found them first.
+
+**The default input policy is ACCEPT.**
+
+```
+firewall.@defaults[0].input='ACCEPT'
+```
+
+![Default firewall policy and zones](images/fw0-defaults.png)
+
+This means that, by default, the router accepts all incoming traffic directed at itself. This is why the website, SSH and ping all worked before we configured anything. It also means our first job is not to open services, but to restrict them.
+
+**The management network was not in any firewall zone.**
+
+The firewall had two zones — `lan` (input ACCEPT) and `wan` (input REJECT) — but comparing them against `uci show network` showed a mismatch:
+
+```
+network.mng.ipaddr = 192.168.56.2
+network.mng.device = br-mng
+network.lan.device = eth2
+network.wan.device = eth1
+```
+
+![Network interface configuration](images/network-config.png)
+
+The network carrying our host-only address 192.168.56.2 is named **`mng`**, not `lan`. The `lan` network is configured on `eth2`, a device that does not exist on this VM. Since the `lan` firewall zone covers only the `lan` network, the `mng` network belonged to no zone at all, and its traffic was being handled by the default ACCEPT policy.
+
+Had we written rules using `src='lan'`, they would have been applied to a non-existent interface. The rules would have appeared in the configuration, the firewall would have restarted without error, and the website would have continued to load — giving the false impression that the rule did not work, when in fact it was never matching our traffic.
+
+We therefore added the `mng` network to the `lan` firewall zone:
+
+```sh
+uci add_list firewall.@zone[0].network='mng'
+uci commit firewall
+/etc/init.d/firewall restart
+uci show firewall.@zone[0]
+```
+
+![Firewall zone configuration](images/fw0-zone.png)
+
+The zone now covers both networks:
+
+```
+firewall.cfg02dc81.name='lan'
+firewall.cfg02dc81.network='lan' 'mng'
+firewall.cfg02dc81.input='ACCEPT'
+```
+
+This change does not alter any behaviour on its own, because the zone's input policy is still ACCEPT. It simply means that rules written with `src='lan'` now match traffic arriving from the Windows host. All four rules below rely on this.
+
+### 4.1 Rule 1 — Block and Allow HTTP
+
+**Purpose.** This rule controls whether the business website on port 80 can be reached from the internal network. Being able to block and restore HTTP access on demand means the business can take the website offline immediately if it is defaced or found to be vulnerable, without shutting down the router or the rest of the network.
+
+**Before — the website loads normally.**
+
+![HTTP before the rule](images/fw1-before.png)
+
+**The rule.** We created a named rule so that it can be modified later without depending on its position in the rule list:
+
+```sh
+uci set firewall.httprule=rule
+uci set firewall.httprule.name='Block-HTTP'
+uci set firewall.httprule.src='lan'
+uci set firewall.httprule.proto='tcp'
+uci set firewall.httprule.dest_port='80'
+uci set firewall.httprule.target='REJECT'
+uci commit firewall
+/etc/init.d/firewall restart
+```
+
+![HTTP firewall rule](images/fw1-rule.png)
+
+**After — the website is inaccessible.**
+
+The browser returns `ERR_CONNECTION_REFUSED` when loading http://192.168.56.2/.
+
+![HTTP blocked](images/fw1-after.png)
+
+The error is *refused* rather than *timed out* because we used `REJECT` rather than `DROP`. REJECT sends an ICMP rejection back to the client, so the browser fails immediately. DROP would discard the packet silently and the browser would hang until it timed out. REJECT is more convenient on an internal network where fast feedback is useful; DROP is generally preferred on the internet-facing side, because silently discarding packets gives an attacker scanning the network no confirmation that anything is listening.
+
+**Changing the rule to allow HTTP.**
+
+```sh
+uci set firewall.httprule.target='ACCEPT'
+uci commit firewall
+/etc/init.d/firewall restart
+```
+
+![HTTP restored](images/fw1-restored.png)
+
+The website loads again, confirming that access to the web server is controlled by this firewall rule.
+
+**How this contributes to network security.** For Westline IT Solutions the public website is the one service deliberately exposed to users, and it is therefore the most likely target for attack. Controlling it with an explicit firewall rule means access is a deliberate decision rather than a side effect of a permissive default policy. Combined with a default-deny approach, this is the principle of least privilege applied at the network layer: only the services the business intends to offer are reachable.
+
+### 4.2 Rule 2 — Allow SSH and Change the Port
+
+**Purpose.** SSH is how the systems administrator manages the router remotely. This rule first permits SSH explicitly on the default port 22, then moves the service to the non-standard port 2222 and updates the firewall to match.
+
+**Before — SSH is reachable on port 22.**
+
+We connected from the Windows host using `ssh root@192.168.56.2`. The session opened and displayed the OpenWrt 22.03.3 banner, confirming both that SSH was working and that we were connecting to the VM provided in this unit.
+
+![SSH working on port 22](images/fw2-before.png)
+
+**Allowing SSH on port 22 explicitly.**
+
+```sh
+uci set firewall.sshrule=rule
+uci set firewall.sshrule.name='Allow-SSH'
+uci set firewall.sshrule.src='lan'
+uci set firewall.sshrule.proto='tcp'
+uci set firewall.sshrule.dest_port='22'
+uci set firewall.sshrule.target='ACCEPT'
+uci commit firewall
+/etc/init.d/firewall restart
+```
+
+![Allow SSH on port 22](images/fw2-rule-22.png)
+
+**Moving SSH to port 2222.**
+
+Changing the port requires two separate changes, and both are necessary. The SSH service itself must be told to listen on the new port, and the firewall rule must be updated to permit it:
+
+```sh
+uci set dropbear.@dropbear[0].Port='2222'
+uci commit dropbear
+/etc/init.d/dropbear restart
+
+uci set firewall.sshrule.name='Allow-SSH-2222'
+uci set firewall.sshrule.dest_port='2222'
+uci commit firewall
+/etc/init.d/firewall restart
+```
+
+We verified with `netstat -ltn` that the service had actually moved rather than simply being reconfigured:
+
+```
+tcp    0    0 0.0.0.0:2222    0.0.0.0:*    LISTEN
+tcp    0    0 :::2222         :::*         LISTEN
+```
+
+Port 22 no longer appears in the listening list at all.
+
+![SSH moved to port 2222](images/fw2-rule-2222.png)
+
+**After — port 22 is refused and port 2222 works.**
+
+```
+ssh root@192.168.56.2
+ssh: connect to host 192.168.56.2 port 22: Connection refused
+
+ssh -p 2222 root@192.168.56.2
+[successful login, OpenWrt 22.03.3 banner]
+```
+
+![SSH port 22 refused, 2222 successful](images/fw2-after.png)
+
+**How this contributes to network security.** Port 22 is the first port an automated scanner tries, and internet-facing SSH services on port 22 receive constant brute-force login attempts. Moving SSH to 2222 removes almost all of that automated noise.
+
+It is important to be clear about what this does and does not achieve. Changing the port is **security through obscurity**, not a genuine access control: an attacker who runs a full port scan will still find the service, and will see the SSH banner when they connect. The real benefit is a practical one — with the automated background noise removed, a login attempt in the logs is far more likely to be a real intrusion attempt and is therefore much easier to notice.
+
+For this reason the port change is only useful alongside a control that actually restricts access. In our project that control is SSH key-based authentication, configured in `harden.md`, which removes password logins altogether. The port change reduces the volume of attacks; key-based authentication is what stops them succeeding.
+
+### 4.3 Rule 3 — Block and Allow ICMP
+
+**Purpose.** ICMP echo requests are what the `ping` command uses. This rule blocks ping responses from the router, making the device less visible to anyone scanning the network to discover live hosts.
+
+**Before — ping succeeds.**
+
+```
+Pinging 192.168.56.2 with 32 bytes of data:
+Reply from 192.168.56.2: bytes=32 time<1ms TTL=64
+...
+Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
+```
+
+![Ping succeeding before the rule](images/fw3-before.png)
+
+**The rule.**
+
+```sh
+uci set firewall.icmprule=rule
+uci set firewall.icmprule.name='Block-ICMP'
+uci set firewall.icmprule.src='lan'
+uci set firewall.icmprule.proto='icmp'
+uci set firewall.icmprule.icmp_type='echo-request'
+uci set firewall.icmprule.family='ipv4'
+uci set firewall.icmprule.target='DROP'
+uci commit firewall
+/etc/init.d/firewall restart
+```
+
+![Block ICMP rule](images/fw3-rule.png)
+
+We matched specifically on `icmp_type='echo-request'` rather than blocking all ICMP. ICMP carries more than just ping — it also carries essential control messages such as "destination unreachable" and "fragmentation needed". Blocking ICMP entirely can break path MTU discovery and cause connections to hang rather than fail cleanly, so blocking only the echo-request type stops ping without damaging normal traffic.
+
+**After — ping fails.**
+
+```
+Pinging 192.168.56.2 with 32 bytes of data:
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+
+Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)
+```
+
+![Ping failing after the rule](images/fw3-after.png)
+
+We used `DROP` here rather than the `REJECT` used in rule 1, and the difference is visible in the result. The pings report "Request timed out" and the command takes roughly 19 seconds instead of 3, because each request waits for a reply that never arrives. With REJECT the router would send back an ICMP rejection message and the failure would be immediate — but that reply would itself confirm to an attacker that a host is present at that address. DROP gives no response of any kind, which is the whole purpose of blocking ping.
+
+**Re-enabling ICMP.**
+
+```sh
+uci set firewall.icmprule.target='ACCEPT'
+uci commit firewall
+/etc/init.d/firewall restart
+```
+
+![Ping restored](images/fw3-restored.png)
+
+**How this contributes to network security.** Blocking ping slows down the reconnaissance stage of an attack. An attacker scanning a network usually begins by sweeping for hosts that respond to ping, and a device that does not reply may be skipped or take considerably longer to find.
+
+The protection is limited: a determined attacker will use a TCP or UDP port scan instead, which will find the router anyway because it is running a web server and SSH. There is also a real cost to the business. Ping is the simplest diagnostic tool available, and blocking it makes troubleshooting harder for Westline's own systems administrator. For this reason, many networks allow ICMP from the internal network, where it is useful, and block it only from the internet-facing side, where it mostly benefits attackers.
+
+### 4.4 Rule 4 — Restrict Management Interface Access
+
+**Purpose.** The LuCI management web interface on port 81 gives complete control of the router — firewall rules, routing, passwords and all network settings. Under our assumptions only the systems administrator needs this access, not the consultants or administrative staff. Rather than blocking port 81 outright, we restricted it so that it is reachable only from the systems administrator's workstation.
+
+> Before applying this rule we kept the VirtualBox console session open, so that if we lost both SSH and web access we could still reach the VM and remove the rule.
+
+**Before — the management interface is reachable.**
+
+Loading `http://192.168.56.2:81/cgi-bin/luci/` from the Windows host displayed the LuCI "Authorization Required" login page, showing that any machine on the internal network could reach the router's administration interface.
+
+![Management interface reachable](images/fw4-before.png)
+
+**The rules.** This restriction needs two rules working together, and the order they are created in matters because OpenWRT evaluates rules in sequence:
+
+```sh
+uci set firewall.mgmtallow=rule
+uci set firewall.mgmtallow.name='Allow-Mgmt-Admin'
+uci set firewall.mgmtallow.src='lan'
+uci set firewall.mgmtallow.proto='tcp'
+uci set firewall.mgmtallow.src_ip='192.168.56.10'
+uci set firewall.mgmtallow.dest_port='81'
+uci set firewall.mgmtallow.target='ACCEPT'
+
+uci set firewall.mgmtblock=rule
+uci set firewall.mgmtblock.name='Block-Mgmt-Others'
+uci set firewall.mgmtblock.src='lan'
+uci set firewall.mgmtblock.proto='tcp'
+uci set firewall.mgmtblock.dest_port='81'
+uci set firewall.mgmtblock.target='REJECT'
+
+uci commit firewall
+/etc/init.d/firewall restart
+```
+
+![Management interface rules](images/fw4-rule.png)
+
+The first rule permits port 81 from the single address 192.168.56.10, which represents the systems administrator's workstation. The second rule rejects port 81 from everything else. Because the allow rule is evaluated first, the administrator's machine is permitted before the blanket rejection is reached. Reversing the order would reject every connection including the administrator's, and the exception would never take effect.
+
+This is an **allow-list** approach: rather than naming the machines that are forbidden, we name the one machine that is permitted and refuse everything else by default. Any new workstation added to the office network is therefore denied management access automatically, with no further configuration.
+
+**After — access is refused.**
+
+Our Windows host at 192.168.56.1 represents an ordinary staff workstation, not the administrator's machine. Reloading the management interface returns `ERR_CONNECTION_REFUSED`.
+
+![Management interface refused](images/fw4-after.png)
+
+The website on port 80 continues to load normally throughout, confirming that the restriction applies specifically to the management interface and does not affect the services the business intends to offer.
+
+**How this contributes to network security.** This is the most important of the four rules for Westline IT Solutions. The company's highest-value asset is the administrative credentials it holds for client networks, and the router is the gateway through which client work is carried out.
+
+If a staff workstation were compromised — by a phishing email or malware, the most common entry point for a small business — the attacker would gain a foothold on the internal network. Without this rule, the malware could reach the router's administration interface and attempt to brute-force the login, alter firewall rules to open the network further, change DNS settings to redirect staff to fraudulent sites, or capture traffic. With the rule in place, the compromised workstation cannot even establish a connection to the management port, so the attacker's foothold is contained to that single machine.
+
+This is defence in depth: the login password protects the interface, and the firewall rule ensures that most attackers never reach the login prompt at all.
