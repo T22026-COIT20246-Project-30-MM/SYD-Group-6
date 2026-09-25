@@ -15,9 +15,9 @@ We assume a single office in one location. This means the business needs only on
 
 ### 1.2 Type of Professional Services
 
-The business is an accounting and taxation practice. It prepares individual and small business tax returns, lodges BAS statements, provides bookkeeping and payroll services, and gives financial planning advice to local clients.
+The business, Westline IT Solutions, is a managed IT services provider. It supplies helpdesk and IT support, cloud and Microsoft 365 services, network and firewall installation, and cyber security services to other small businesses in the local area.
 
-This assumption matters for security because the business stores tax file numbers, bank account details, payroll records and financial statements belonging to its clients. This data is attractive to attackers because it can be used for identity theft and fraud, and the business is legally required to protect it under Australian privacy law. For this reason confidentiality is the highest priority in our risk assessment.
+This assumption matters for security because of the kind of data the business holds. As an IT services provider it stores administrative credentials, network documentation, remote access details and backup data belonging to its **client** businesses. This makes it a more attractive target than an ordinary small business of the same size: an attacker who compromises Westline does not gain access to one network, but potentially to every client network the business administers. This is the same pattern seen in real supply chain attacks on managed service providers. For this reason confidentiality of client credentials is the highest priority in our risk assessment.
 
 ### 1.3 Number of Staff and Their Roles
 
@@ -25,20 +25,22 @@ The business has 5 staff:
 
 | Role | Number | Network access needed |
 |---|---|---|
-| Owner / principal accountant | 1 | Full access to client records and financial systems |
-| Accountants | 2 | Access to client records for their own clients |
-| Administrative staff | 1 | Appointments, invoicing and general correspondence |
-| IT support contractor (part-time, on site weekly) | 1 | Router and server administration |
+| Owner / principal consultant | 1 | Full access to client records and systems |
+| IT support technicians | 2 | Access to client systems and support tickets |
+| Administrative staff | 1 | Scheduling, invoicing and general correspondence |
+| Systems administrator (part-time) | 1 | Router, server and internal network administration |
 
-This gives 5 Windows workstations on the internal network, plus a shared network printer. Only the IT support contractor needs to reach the router management interface, which is why we restrict management access rather than allowing it from every workstation on the network.
+This gives 5 Windows workstations on the internal network, plus a shared network printer. Only the systems administrator needs to reach the router management interface, which is why we restrict management access rather than allowing it from every workstation on the network.
+
+The administrative staff member does not need access to client credentials or client systems, which supports applying least privilege across the internal network rather than giving all staff the same level of access.
 
 ### 1.4 Website Content
 
 The website is a public information site only. It shows the business name, a description of the services offered, the office address and opening hours, and a contact phone number and email address.
 
-The website does not have client logins, file uploads, online payments, or a database, and it does not collect or store any personal information. We assume clients send documents by other means and do not upload them through the site.
+The website does not have client logins, a support ticket portal, file uploads, online payments, or a database, and it does not collect or store any personal information. We assume clients raise support requests by phone and email rather than through the website.
 
-This assumption keeps the web server simple, since no database or user authentication is required. The website still needs protection: if it were defaced or taken offline, the business would lose credibility with existing clients and would appear untrustworthy to potential new clients, which is a reputational risk rather than a data breach risk.
+This assumption keeps the web server simple, since no database or user authentication is required. The website still needs protection: if it were defaced or taken offline, the business would lose credibility with existing clients and would appear untrustworthy to potential new clients. For a business that sells cyber security services, a visibly compromised website is especially damaging, so this is a reputational risk rather than a data breach risk but still a serious one.
 
 ## 2. Lab Network — OpenWRT and VirtualBox
 
@@ -138,3 +140,52 @@ Source file: [`images/lab-network-diagram.drawio`](images/lab-network-diagram.dr
 | OpenWRT VM | `eth0` | *(no address — bridge member)* | — | 192.168.56.0/24 | Host-only |
 | Windows host | VirtualBox Host-Only Adapter ("Ethernet 2") | 192.168.56.1 | 255.255.255.0 | 192.168.56.0/24 | Host-only |
 | NAT gateway (VirtualBox) | — | 10.0.3.2 | 255.255.255.0 | 10.0.3.0/24 | NAT |
+
+## 3. Test Web Server
+
+We set up a web server on OpenWRT to host a simple test website representing the business described in our assumptions.
+
+### 3.1 Web Server Configuration
+
+OpenWRT uses **uhttpd** as its web server. We examined its configuration with `cat /etc/config/uhttpd` and found that the VM runs two separate uhttpd instances:
+
+| Instance | Port | Document root | Purpose |
+|---|---|---|---|
+| `main` | 81 | `/www` | The LuCI management web interface for administering the router |
+| `student` | 80 | `/srv/www` | A separate instance for hosting our own website |
+
+![uhttpd configuration](images/uhttpd-config.png)
+
+Separating the two is useful for security. The business website is served to ordinary users on port 80, while router administration sits on a different port with its own document root. This means access to the management interface can be restricted by the firewall without affecting the public website, which is exactly what we do in firewall rule 4 (Section 4.4).
+
+We confirmed both instances were listening using `netstat -ltn`:
+
+```
+tcp    0    0 0.0.0.0:80     0.0.0.0:*    LISTEN
+tcp    0    0 0.0.0.0:81     0.0.0.0:*    LISTEN
+tcp    0    0 0.0.0.0:22     0.0.0.0:*    LISTEN
+```
+
+![netstat listening ports](images/netstat-ports.png)
+
+Port 80 is the website, port 81 is the management interface, and port 22 is SSH. These are the three services our firewall rules in Section 4 control.
+
+### 3.2 The Website
+
+We wrote the website in HTML and placed it at `/srv/www/index.html`, the document root of the `student` uhttpd instance. The page represents Westline IT Solutions and contains the business name, the services offered, the contact details and opening hours, and the project details including both of our full names, our student IDs, our group and the date the page was created.
+
+The content matches the assumptions in Section 1: it is a public information page only, with no client login, no file upload and no form that collects personal data.
+
+![Test website in browser](images/website-browser.png)
+
+![Test website — project details](images/website-details.png)
+
+The website is reachable from the Windows host at **http://192.168.56.2/** over the host-only network, which confirms that the web server is running and that the Windows host can reach services on OpenWRT.
+
+### 3.3 Connectivity Test
+
+We confirmed basic network connectivity between the Windows host and OpenWRT with `ping`:
+
+![Ping test](images/ping-test.png)
+
+A successful reply from 192.168.56.2 shows that the two machines are on the same host-only subnet and that ICMP traffic is permitted. This is the baseline behaviour we later change in firewall rule 3 (Section 4.3), where blocking ICMP causes this same ping to fail.
