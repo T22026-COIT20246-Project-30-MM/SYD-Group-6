@@ -228,6 +228,8 @@ S10system       S19dropbear S94gpio_switch S99urandom_seed
 S11sysctl
 ```
 
+![Services configured to start at boot](images/harden4-services.png)
+
 We reviewed these against what our network actually needs:
 
 | Service | Needed? | Reason |
