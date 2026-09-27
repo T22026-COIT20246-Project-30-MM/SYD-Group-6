@@ -476,3 +476,90 @@ The website on port 80 continues to load normally throughout, confirming that th
 If a staff workstation were compromised — by a phishing email or malware, the most common entry point for a small business — the attacker would gain a foothold on the internal network. Without this rule, the malware could reach the router's administration interface and attempt to brute-force the login, alter firewall rules to open the network further, change DNS settings to redirect staff to fraudulent sites, or capture traffic. With the rule in place, the compromised workstation cannot even establish a connection to the management port, so the attacker's foothold is contained to that single machine.
 
 This is defence in depth: the login password protects the interface, and the firewall rule ensures that most attackers never reach the login prompt at all.
+
+
+## 5. Production Network Design
+
+The lab setup in Sections 2 to 4 simulates only part of the network. This section shows how we would design the full network for the business premises described in our assumptions.
+
+### 5.1 Design
+
+The production network separates the business into four parts, each with its own subnet:
+
+- **Internet connection** — a business NBN service from an ISP, terminating on the router/firewall.
+- **Router/firewall** — a single device running OpenWRT, providing routing, firewalling and network address translation between the internal networks and the internet.
+- **Staff network** — the workstations used by the principal consultant, the two IT support technicians and the administrative staff member, plus a shared network printer.
+- **Server network** — the web server hosting the public business website, on a separate subnet from the staff workstations.
+- **Management network** — a separate subnet containing the router's management interface and the systems administrator's workstation.
+
+**Why the web server is separated.** The website is the only service deliberately exposed to the internet, which makes it the most likely component to be compromised. Placing it on its own subnet means that an attacker who gains control of the web server is still separated by the firewall from the staff workstations, where client records and credentials are held. If the web server were on the staff network, compromising it would put the attacker directly alongside the business's most sensitive data.
+
+**Why management is separated.** This applies the same principle as firewall rule 4 (Section 4.4) to the production design. The router's management interface is reachable only from the management subnet, so a compromised staff workstation cannot reach it at all.
+
+![Production network diagram](images/production-network-diagram.png)
+
+Source file: [`images/production-network-diagram.drawio`](images/production-network-diagram.drawio)
+
+### 5.2 IP Addressing Requirements
+
+The addressing follows the requirements in Section 4.1.5 of the project specification:
+
+- Only **/16 or /24** network masks are used.
+- The first octet of every address is the last two digits of a group member's student ID — **51** (from 12327451) or **53** (from 12312653).
+- No private addresses such as 192.168.x.y are used anywhere in the production design.
+
+| Network | Address range | Mask | Purpose |
+|---|---|---|---|
+| WAN link | 53.10.1.0/24 | 255.255.255.0 | The link between the ISP and the router/firewall |
+| Staff LAN | 51.1.10.0/24 | 255.255.255.0 | Staff workstations and the network printer |
+| Server network | 51.1.20.0/24 | 255.255.255.0 | The public web server |
+| Management | 51.1.30.0/24 | 255.255.255.0 | Router management access |
+
+We used /24 subnets throughout. A /24 provides 254 usable addresses, which is far more than a five-person business needs, but it is the smallest mask permitted by the specification and it keeps the addressing simple to read. Using separate subnets rather than one flat network is what allows the firewall to control traffic between the staff, server and management areas.
+
+### 5.3 Address Allocation
+
+| Device | Network | IP address | Notes |
+|---|---|---|---|
+| ISP gateway | WAN link | 53.10.1.1 | Provided by the ISP |
+| Router/firewall — WAN interface | WAN link | 53.10.1.2 | Static address |
+| Router/firewall — staff interface | Staff LAN | 51.1.10.1 | Default gateway for staff workstations |
+| Owner / principal consultant | Staff LAN | 51.1.10.11 | |
+| IT support technician 1 | Staff LAN | 51.1.10.12 | |
+| IT support technician 2 | Staff LAN | 51.1.10.13 | |
+| Administrative staff | Staff LAN | 51.1.10.14 | |
+| Network printer | Staff LAN | 51.1.10.20 | Static address so it does not change |
+| DHCP pool | Staff LAN | 51.1.10.100 – 51.1.10.150 | For visiting laptops and replacement machines |
+| Router/firewall — server interface | Server network | 51.1.20.1 | Default gateway for the server network |
+| Web server | Server network | 51.1.20.10 | Hosts the public business website on port 80 |
+| Router/firewall — management interface | Management | 51.1.30.1 | Management web interface on port 81 |
+| Systems administrator workstation | Management | 51.1.30.10 | The only device permitted to reach the management interface |
+
+Fixed addresses are used for the router interfaces, the web server, the printer and the systems administrator's workstation, because firewall rules refer to these addresses and would stop working correctly if they changed. The DHCP pool covers machines whose addresses do not matter to any rule.
+
+### 5.4 How the Lab Setup Maps to the Production Design
+
+| Production component | How it is represented in the lab |
+|---|---|
+| Router/firewall | The OpenWRT VM |
+| Staff workstation | The Windows host connected over the host-only adapter at 192.168.56.1 |
+| Web server | The `student` uhttpd instance running on OpenWRT itself, on port 80 |
+| Management interface | The `main` uhttpd instance (LuCI) on port 81 |
+| Internet connection | The NAT adapter on `eth1`, giving OpenWRT outbound internet access |
+| Management network | The `br-mng` interface at 192.168.56.2 |
+
+The lab differs from the production design in two ways, both due to the resources available. First, the web server runs on the router itself rather than on a separate machine on its own subnet. Second, the staff, server and management networks are all simulated by the single 192.168.56.0/24 host-only network, so the separation between them is enforced by firewall rules on ports rather than by separate subnets. The firewall rules we configured in Section 4 demonstrate the same access controls that the production design would apply between subnets.
+
+## 6. References
+
+OpenWrt Project. *OpenWrt Firewall Configuration /etc/config/firewall*. https://openwrt.org/docs/guide-user/firewall/firewall_configuration
+
+OpenWrt Project. *uhttpd Web Server Configuration*. https://openwrt.org/docs/guide-user/services/webserver/uhttpd
+
+OpenWrt Project. *Dropbear SSH Server Configuration*. https://openwrt.org/docs/guide-user/base-system/dropbear
+
+Oracle. *Oracle VM VirtualBox User Manual — Virtual Networking*. https://www.virtualbox.org/manual/ch06.html
+
+COIT20246 Cyber Security and Networking, Term 2 2026, unit lecture material and lab practicals, CQUniversity.
+
+*Generative AI (Claude) was used to help improve the wording of explanations in this report and to check our firewall rule syntax. All configuration, testing, screenshots and diagrams are our own work, produced on the OpenWRT VM provided in this unit.*
