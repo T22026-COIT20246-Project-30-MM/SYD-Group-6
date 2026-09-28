@@ -498,7 +498,7 @@ The production network separates the business into four parts, each with its own
 
 ![Production network diagram](images/production-network-diagram.png)
 
-Source file: [`images/production-network-diagram.drawio`](images/production-network-diagram.drawio)
+Source file: [`images/production-network-diagram.drawio`](images/Production-Network-Diagram.drawio)
 
 ### 5.2 IP Addressing Requirements
 
