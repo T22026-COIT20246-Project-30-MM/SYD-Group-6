@@ -288,3 +288,267 @@ The only remaining line in the `ps` output is the `grep` command itself, and `ls
 **Why disabling unnecessary services improves security.** The principle is that code which is not running cannot be exploited. A vulnerability discovered in odhcpd in the future would not affect this router, because the service is not there to attack. This also means one less component to patch and monitor.
 
 For Westline IT Solutions there is a second, more specific benefit. Router advertisements are how devices on a network learn their IPv6 configuration, including the default gateway. On a network where IPv6 is not being managed or monitored, an attacker who gains a foothold can use rogue router advertisements to make themselves the default IPv6 gateway and intercept traffic, while the administrators continue watching IPv4 and see nothing wrong. Turning off IPv6 services that are not in use removes an entire parallel network stack that nobody at the business is paying attention to.
+
+---
+
+## 2. Capture and Analyse Network Traffic
+
+We captured traffic on the OpenWRT router using `tcpdump` and analysed it on the Windows host using Wireshark. Two captures were taken over the host-only network between the Windows host (192.168.56.1) and the router (192.168.56.2): one of unencrypted HTTP traffic to our business website, and one of an encrypted SSH administration session.
+
+Both capture files are included in this repository:
+
+| File | Size | Packets | Contents |
+|---|---|---|---|
+| [`captures/http-capture.pcap`](captures/http-capture.pcap) | 12,612 bytes | 40 | HTTP traffic to the test website |
+| [`captures/ssh-capture.pcap`](captures/ssh-capture.pcap) | 15,453 bytes | 100 | An SSH session on port 2222 |
+
+---
+
+### 2.1 Capture 1 — HTTP Traffic
+
+#### Taking the capture
+
+We ran tcpdump on the router, filtering for TCP port 80 — the port serving our website, as identified in `network.md` Section 3.1:
+
+```sh
+tcpdump -i br-mng -s 0 -w /tmp/http-capture.pcap 'tcp port 80'
+```
+
+The `-i br-mng` selects the interface facing the Windows host. The `-s 0` sets an unlimited snapshot length so that full packets are captured rather than just their headers — without this the HTML payload would be truncated and the analysis below would not be possible.
+
+While the capture was running we loaded `http://192.168.56.2/?v=1` from Chrome on the Windows host.
+
+![tcpdump HTTP capture](images/capture1-tcpdump.png)
+
+```
+40 packets captured
+40 packets received by filter
+0 packets dropped by kernel
+```
+
+**A problem we had to solve.** Our first attempt produced a 5,475-byte file that contained no page content at all. The browser had the page cached, so it sent a conditional request and the server replied `304 Not Modified` with an empty body — the headers were captured but the HTML never crossed the network. We solved this by requesting a URL the browser had never seen, `?v=1`, which forced a complete fetch. The file grew to 12,612 bytes and the page content appeared.
+
+We verified the payload was present before moving to Wireshark, by searching the capture file directly on the router:
+
+```sh
+grep -a "12312653" /tmp/http-capture.pcap
+```
+
+```
+<tr><th>Student 1</th><td>Md Arman Joarder &mdash; 12312653</td></tr>
+```
+
+A student ID typed into an HTML file was recoverable from the raw capture with a single text search, with no analysis tool involved at all.
+
+#### Analysis in Wireshark
+
+We transferred the capture to the Windows host and opened it in Wireshark with the display filter `http`.
+
+![Transferring the captures](images/capture-transfer.png)
+
+![HTTP packet list in Wireshark](images/capture1-wireshark-list.png)
+
+Twelve of the forty packets are HTTP; the remainder are TCP handshake and acknowledgement packets. The exchange is:
+
+| Packet | Direction | Content |
+|---|---|---|
+| 4 | .1 → .2 | `GET /?v=1 HTTP/1.1` |
+| 14 | .2 → .1 | `HTTP/1.1 200 OK (text/html)` — the full page |
+| 16 / 19 | both | `GET /favicon.ico` → `404 Not Found` |
+| 21–39 | both | Later `GET`s → `304 Not Modified` |
+
+The `304 Not Modified` responses are the caching behaviour that defeated our first attempt, now visible in the data.
+
+#### The request
+
+![HTTP request in Wireshark](images/capture1-wireshark-request.png)
+
+Expanding packet 4 shows the full protocol stack, and every layer leaks something:
+
+| Layer | Field | Value |
+|---|---|---|
+| Ethernet | Source / destination MAC | `0a:00:27:00:00:13` → `08:00:27:e4:b4:9d` |
+| IPv4 | Source / destination IP | 192.168.56.1 → 192.168.56.2 |
+| TCP | Source / destination port | 9406 → 80 |
+| HTTP | Request URI | `http://192.168.56.2/?v=1` |
+| HTTP | Host header | `192.168.56.2` |
+| HTTP | User-Agent | `Mozilla/5.0 (Windows NT 10.0; Win64; x64) ... Chrome/153.0.0.0` |
+
+The destination MAC `08:00:27:e4:b4:9d` is the same address we identified as `br-mng` in `network.md` Section 2.2, confirming the traffic is reaching the router over the host-only bridge.
+
+#### The response
+
+![HTTP response in Wireshark](images/capture1-wireshark-response.png)
+
+Packet 14 carries the reply. Wireshark reports `[5 Reassembled TCP Segments (5723 bytes)]` — the page was larger than one packet, so it was split across five TCP segments which Wireshark reassembled. The headers show:
+
+```
+HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 5499
+ETag: "11d-157b-6ab66263"
+Last-Modified: Fri, 25 Sep 2026 12:00:35 GMT
+Date: Sun, 27 Sep 2026 13:49:46 GMT
+```
+
+Even in the raw hex pane, the ASCII column is directly readable — `span>Router, firewall and secure Wi-Fi installation and configuration.</span>` — with no decoding required.
+
+#### Following the stream
+
+Right-clicking the packet and selecting **Follow → HTTP Stream** reassembles the entire conversation: 6 client packets, 6 server packets, 9,651 bytes.
+
+![Following the HTTP stream](images/capture1-followstream.png)
+
+The complete page is readable, including the personalised project details:
+
+```html
+<div class="card project-card">
+  <h2>COIT20246 Project &mdash; Test Website</h2>
+  <table>
+    <tr><th>Student 1</th><td>Md Arman Joarder &mdash; 12312653</td></tr>
+    <tr><th>Student 2</th><td>Atikur Rahman Mimmoy &mdash; 12327451</td></tr>
+    <tr><th>Group</th><td>SYD Group 6</td></tr>
+    <tr><th>Campus</th><td>Sydney (SYD)</td></tr>
+    <tr><th>Date created</th><td>25 September 2026</td></tr>
+  </table>
+</div>
+```
+
+The business contact details are equally exposed:
+
+```html
+<tr><th>Address</th><td>Level 2, 15 Macquarie Street, Parramatta NSW 2150</td></tr>
+<tr><th>Phone</th><td>(02) 9000 1234</td></tr>
+<tr><th>Email</th><td>support@westlineit.example.com</td></tr>
+```
+
+#### Security implications — what could an attacker learn?
+
+Anyone positioned to observe this traffic obtains the following without any cracking, guessing or specialist equipment:
+
+**The complete content of every page viewed.** Our page is public information, so the content itself is not confidential. But the principle generalises: HTTP provides no confidentiality whatsoever, so whatever a user views is visible to anyone on the path. If Westline IT Solutions later added a client portal over HTTP, every client record displayed would be exposed the same way.
+
+**Credentials, if any were used.** Our site has no login, but had it, the username and password would appear in the capture exactly as the HTML did. The same applies to session cookies — an attacker who captures a session cookie can impersonate that user without ever knowing their password.
+
+**Who is talking to whom, and about what.** The IP and MAC addresses identify both machines, the URI shows precisely which pages were requested, and the timing shows when.
+
+**What software the client is running.** The User-Agent header volunteers Windows 10, 64-bit, Chrome 153. An attacker can look up known vulnerabilities for that exact browser version and select a matching exploit, rather than guessing.
+
+**The ability to modify traffic, not just read it.** This is the consequence that is easy to overlook. HTTP provides no integrity protection, so an attacker positioned between the client and server can alter the response in transit — injecting a fake login form, adding malicious JavaScript, or changing the displayed bank details on an invoice. The browser has no way to detect the change, because there is nothing to verify against.
+
+For a business that sells cyber security services, hosting its public site over plain HTTP is also a credibility problem in itself: modern browsers display a "Not secure" warning in the address bar, which is visible in our own screenshots.
+
+---
+
+### 2.2 Capture 2 — SSH Traffic
+
+#### Taking the capture
+
+We captured an SSH administration session, filtering on port 2222 — the non-standard port we moved SSH to in `network.md` Section 4.2:
+
+```sh
+tcpdump -i br-mng -s 0 -w /tmp/ssh-capture.pcap 'tcp port 2222'
+```
+
+We ran this from the VirtualBox console rather than over SSH, so that the capture would record only the session being studied and not the session doing the capturing. While it ran, we connected from the Windows host and executed `uname -a`, `ls /etc` and `cat /etc/openwrt_release`.
+
+![tcpdump SSH capture](images/capture2-tcpdump.png)
+
+```
+100 packets captured
+101 packets received by filter
+0 packets dropped by kernel
+```
+
+We then applied exactly the same test we used on the HTTP capture, searching for text we knew had crossed the connection:
+
+```sh
+grep -a "openwrt_release" /tmp/ssh-capture.pcap
+grep -a "DISTRIB_RELEASE" /tmp/ssh-capture.pcap
+```
+
+Both searches returned nothing. We had typed `cat /etc/openwrt_release` and watched `DISTRIB_RELEASE='22.03.3'` print on screen, yet neither string appears anywhere in 15,453 bytes of captured traffic.
+
+#### Analysis in Wireshark
+
+![SSH packet list in Wireshark](images/capture2-wireshark-list.png)
+
+Wireshark identified the traffic as **SSHv2** despite the non-standard port, using protocol heuristics rather than the port number. The session divides cleanly into two phases:
+
+| Packets | Phase | Readable? |
+|---|---|---|
+| 5–7 | TCP three-way handshake | Headers only |
+| 8–9 | Version banner exchange | **Yes — plaintext** |
+| 11–15 | Key Exchange Init, Elliptic Curve Diffie-Hellman | **Yes — plaintext** |
+| 16 | New Keys | Changeover point |
+| 18 onward | `Encrypted packet (len=…)` | **No** |
+
+Note that Wireshark labels 192.168.56.2 as "Client" and 192.168.56.1 as "Server", which is the reverse of reality — 192.168.56.2 is the router running the SSH server. We refer to them by address to avoid repeating that mistake.
+
+#### What is visible before encryption begins
+
+Reading the capture file directly shows exactly what crosses the wire in the clear:
+
+```
+SSH-2.0-dropbear
+SSH-2.0-OpenSSH_for_Windows_9.5
+```
+
+Each side announces its software and version. The algorithm negotiation is also plaintext — the router offers:
+
+```
+kex:     curve25519-sha256, diffie-hellman-group14-sha256, diffie-hellman-group14-sha1
+hostkey: ssh-ed25519, rsa-sha2-256, ssh-rsa
+cipher:  chacha20-poly1305@openssh.com, aes128-ctr, aes256-ctr
+mac:     hmac-sha1, hmac-sha2-256
+```
+
+The host key type in use is `ssh-ed25519`, matching the key algorithm we chose in Section 1.3.
+
+#### What is not visible
+
+![Following the SSH stream](images/capture2-followstream.png)
+
+Following the TCP stream shows the two version banners as readable text, and then nothing but binary data for the remainder of the session. The commands we typed, their output, the directory listing of `/etc`, and the authentication exchange itself are all unrecoverable.
+
+This is the direct counterpart to the HTTP stream in Section 2.1: the same tool, the same view, the same network — and no readable content.
+
+#### Comparison and why encryption matters
+
+The two captures were taken minutes apart, on the same interface, between the same two machines, using the same tools. The only difference is the protocol.
+
+| | HTTP (port 80) | SSH (port 2222) |
+|---|---|---|
+| `grep` for known content | Returned the full HTML | Returned nothing |
+| Follow Stream | Complete page, readable | Two banners, then binary |
+| Content confidentiality | None | Protected |
+| Content integrity | None — modifiable in transit | Protected — tampering detected |
+| Credentials | Would be readable | Never transmitted (key-based) |
+| Software versions disclosed | Yes, via User-Agent | Yes, via version banner |
+| Endpoints, ports, timing | Visible | Visible |
+
+**Encryption protects content, not metadata.** The SSH capture still reveals a great deal. An observer can see that 192.168.56.1 connected to 192.168.56.2 on port 2222, at what time, for how long, and how many bytes flowed in each direction. Packet sizes and timing can leak more than is obvious: interactive SSH sends a packet per keystroke, so the pattern of small packets reveals typing rhythm and command lengths even though the characters themselves are protected.
+
+**The negotiation phase is a real disclosure.** An attacker learns the router runs dropbear and the client runs OpenSSH 9.5 on Windows, then searches for known vulnerabilities in those exact versions. They also learn which algorithms are supported — and here that reveals something worth acting on. The router still offers `hmac-sha1` and `diffie-hellman-group14-sha1`, both of which rely on SHA-1, an algorithm now considered obsolete. Modern clients will negotiate something stronger, but continuing to offer legacy options creates the possibility of a downgrade attack against an older or manipulated client. For Westline IT Solutions we would recommend restricting the offered algorithms to the modern set.
+
+**Why this matters for the business.** Westline's systems administrator uses SSH to manage the router, and the traffic crosses the same office network as everything else. If that administration were done over an unencrypted protocol such as telnet, an attacker with a foothold on any staff workstation could read the entire session — including the credentials used to authenticate — and gain full control of the router. Because SSH is used instead, and because we configured key-based authentication in Section 1.3, there is no password in the traffic to capture and no content to read.
+
+The practical recommendation that follows from these two captures is straightforward: the business website should be served over HTTPS rather than HTTP. The mechanism is the same one demonstrated by the SSH capture — encrypt the channel so that content is confidential and tamper-evident, rather than relying on the network itself being trustworthy.
+
+---
+
+## 3. References
+
+OpenWrt Project. *Dropbear SSH Server Configuration*. https://openwrt.org/docs/guide-user/base-system/dropbear
+
+OpenWrt Project. *OpenWrt Firewall Configuration*. https://openwrt.org/docs/guide-user/firewall/firewall_configuration
+
+The Tcpdump Group. *tcpdump(8) man page*. https://www.tcpdump.org/manpages/tcpdump.1.html
+
+Wireshark Foundation. *Wireshark User's Guide*. https://www.wireshark.org/docs/wsug_html_chunked/
+
+Bernstein, D. J., Duif, N., Lange, T., Schwabe, P., and Yang, B.-Y. *High-speed high-security signatures* (Ed25519). https://ed25519.cr.yp.to/
+
+COIT20246 Cyber Security and Networking, Term 2 2026, unit lecture material and lab practicals, CQUniversity.
+
+*Generative AI (Claude) was used to help improve the wording of explanations in this report and to check command syntax. All configuration, testing, captures and screenshots are our own work, produced on the OpenWRT VM provided in this unit.*
