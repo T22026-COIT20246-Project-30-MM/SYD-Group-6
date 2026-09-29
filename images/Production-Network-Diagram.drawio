@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="HCzLcVywtI7g9CIgwoL8">
-    <mxGraphModel dx="3252" dy="1656" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="3215" dy="1357" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -25,13 +25,13 @@
         <mxCell id="3qLvQKpn7sN6kXG3NhDJ-12" edge="1" parent="1" source="3qLvQKpn7sN6kXG3NhDJ-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FFB570;strokeWidth=3;" target="3qLvQKpn7sN6kXG3NhDJ-11" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="3qLvQKpn7sN6kXG3NhDJ-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;ISP gateway (Business NBN)&lt;/font&gt;&lt;/b&gt;&lt;div&gt;&lt;font style=&quot;font-size: 13px;&quot;&gt;51.1.40.1&lt;/font&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="3qLvQKpn7sN6kXG3NhDJ-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;ISP gateway (Business NBN)&lt;/font&gt;&lt;/b&gt;&lt;div&gt;&lt;font style=&quot;font-size: 13px;&quot;&gt;53.10.1.1&lt;/font&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="302" x="533.76" y="290" as="geometry" />
         </mxCell>
         <mxCell id="3qLvQKpn7sN6kXG3NhDJ-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="" vertex="1">
           <mxGeometry height="230" width="960" x="170" y="440" as="geometry" />
         </mxCell>
-        <mxCell id="3qLvQKpn7sN6kXG3NhDJ-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;span style=&quot;color: rgb(255, 128, 0);&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;&lt;b&gt;WAN link 51.1.40.0/24&lt;/b&gt;&lt;/font&gt;&lt;/span&gt;" vertex="1">
+        <mxCell id="3qLvQKpn7sN6kXG3NhDJ-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;span style=&quot;color: rgb(255, 128, 0);&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;&lt;b&gt;WAN link 53.10.1.0/24&lt;/b&gt;&lt;/font&gt;&lt;/span&gt;" vertex="1">
           <mxGeometry height="30" width="60" x="700" y="380" as="geometry" />
         </mxCell>
         <mxCell id="3qLvQKpn7sN6kXG3NhDJ-15" parent="1" style="image;html=1;image=img/lib/clip_art/networking/Wireless_Router_N_128x128.png" value="" vertex="1">
@@ -40,7 +40,7 @@
         <mxCell id="3qLvQKpn7sN6kXG3NhDJ-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;&lt;b style=&quot;&quot;&gt;Router / Firewall - OpenWRT&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;NAT, firewall rules and routing between all subnets&lt;/font&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="450" x="323" y="475" as="geometry" />
         </mxCell>
-        <mxCell id="3qLvQKpn7sN6kXG3NhDJ-17" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;&lt;b&gt;WAN interface&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 13px;&quot;&gt;51.1.40.2/24&lt;br&gt;(static)&lt;/font&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="3qLvQKpn7sN6kXG3NhDJ-17" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;&lt;b&gt;WAN interface&lt;/b&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 13px;&quot;&gt;53.10.1.2/24&lt;br&gt;(static)&lt;/font&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="100" width="210" x="215" y="551" as="geometry" />
         </mxCell>
         <mxCell id="3qLvQKpn7sN6kXG3NhDJ-40" edge="1" parent="1" source="3qLvQKpn7sN6kXG3NhDJ-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=4;strokeColor=#007FFF;" target="3qLvQKpn7sN6kXG3NhDJ-21" value="">
@@ -178,7 +178,7 @@
         <mxCell id="3qLvQKpn7sN6kXG3NhDJ-62" parent="1" style="image;html=1;image=img/lib/clip_art/computers/Laptop_128x128.png" value="" vertex="1">
           <mxGeometry height="70" width="90" x="1271" y="907.89" as="geometry" />
         </mxCell>
-        <mxCell id="3qLvQKpn7sN6kXG3NhDJ-63" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;Systems Administrator Workstation&lt;/font&gt;&lt;/b&gt;&lt;div&gt;&lt;font style=&quot;font-size: 13px;&quot;&gt;51.1.30.1. (Static)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 13px;&quot;&gt;Only device allowed to reach&amp;nbsp;&lt;br&gt;LuCi (TCP 81)&lt;/font&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="3qLvQKpn7sN6kXG3NhDJ-63" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;Systems Administrator Workstation&lt;/font&gt;&lt;/b&gt;&lt;div&gt;&lt;font style=&quot;font-size: 13px;&quot;&gt;51.1.30.10 (Static)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 13px;&quot;&gt;Only device allowed to reach&amp;nbsp;&lt;br&gt;LuCi (TCP 81)&lt;/font&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="345" x="1143.5" y="1018.41" as="geometry" />
         </mxCell>
         <mxCell id="3qLvQKpn7sN6kXG3NhDJ-64" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value=" " vertex="1">
@@ -196,7 +196,7 @@
         <mxCell id="3qLvQKpn7sN6kXG3NhDJ-74" parent="1" style="line;strokeWidth=4;html=1;perimeter=backbonePerimeter;points=[];outlineConnect=0;strokeColor=#009900;" value="" vertex="1">
           <mxGeometry height="10" width="90" x="-34" y="1332" as="geometry" />
         </mxCell>
-        <mxCell id="3qLvQKpn7sN6kXG3NhDJ-75" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;autosize=1;resizable=0;" value="WAN / Internet network (51.1.40.0/24)" vertex="1">
+        <mxCell id="3qLvQKpn7sN6kXG3NhDJ-75" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;autosize=1;resizable=0;" value="WAN / Internet network (53.10.1.0/24)" vertex="1">
           <mxGeometry height="30" width="230" x="57" y="1232" as="geometry" />
         </mxCell>
         <mxCell id="3qLvQKpn7sN6kXG3NhDJ-76" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;autosize=1;resizable=0;" value="Staff LAN (51.1.10.0/24)" vertex="1">
