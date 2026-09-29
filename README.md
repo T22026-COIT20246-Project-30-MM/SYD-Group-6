@@ -19,31 +19,31 @@
 Key items in the project (see the Project Specification defines *all* items).
 
 Group and Planning
-- [ ] Form your group
+- [x] Form your group
 - [x] Create GitHub Repository via GitHub Classroom
-- [ ] Agree on communication plan: frequency, methods
-- [ ] Prepare schedule in plan.md
-- [ ] Ensure all members understand expectations for GitHub contributions
+- [x] Agree on communication plan: frequency, methods
+- [x] Prepare schedule in plan.md
+- [x] Ensure all members understand expectations for GitHub contributions
 
 Network Setup
-- [ ] List assumptions
-- [ ] Document OpenWRT/VirtualBox network
-- [ ] Draw OpenWRT/VirtualBox network diagram
-- [ ] Setup test web server on OpenWRT
-- [ ] Configure firewall rules
-- [ ] Draw production network diagram, assigning IPs
+- [x] List assumptions
+- [x] Document OpenWRT/VirtualBox network
+- [x] Draw OpenWRT/VirtualBox network diagram
+- [x] Setup test web server on OpenWRT
+- [x] Configure firewall rules
+- [x] Draw production network diagram, assigning IPs
 
 Security Hardening and Traffic Analysis
-- [ ] Change default credentials and examine password storage
-- [ ] Setp SSH key-based authentication
-- [ ] Disable unnecessary services
-- [ ] Capture and analyse HTTP traffic
-- [ ] Capture and analyse SSH traffic
+- [x] Change default credentials and examine password storage
+- [x] Setp SSH key-based authentication
+- [x] Disable unnecessary services
+- [x] Capture and analyse HTTP traffic
+- [x] Capture and analyse SSH traffic
 
 Risk Assessment and Controls
-- [ ] Conduct mini risk assessment
-- [ ] Recommend security controls
-- [ ] Explain controls
+- [x] Conduct mini risk assessment
+- [x] Recommend security controls
+- [x] Explain controls
 
 Project Reflection
 - [ ] Include commits screenshot
