@@ -537,7 +537,18 @@ We used /24 subnets throughout. A /24 provides 254 usable addresses, which is fa
 
 Fixed addresses are used for the router interfaces, the web server, the printer and the systems administrator's workstation, because firewall rules refer to these addresses and would stop working correctly if they changed. The DHCP pool covers machines whose addresses do not matter to any rule.
 
+### 5.4 How the Lab Setup Maps to the Production Design
 
+| Production component | How it is represented in the lab |
+|---|---|
+| Router/firewall | The OpenWRT VM |
+| Staff workstation | The Windows host connected over the host-only adapter at 192.168.56.1 |
+| Web server | The `student` uhttpd instance running on OpenWRT itself, on port 80 |
+| Management interface | The `main` uhttpd instance (LuCI) on port 81 |
+| Internet connection | The NAT adapter on `eth1`, giving OpenWRT outbound internet access |
+| Management network | The `br-mng` interface at 192.168.56.2 |
+
+The lab differs from the production design in two ways, both due to the resources available. First, the web server runs on the router itself rather than on a separate machine on its own subnet. Second, the staff, server and management networks are all simulated by the single 192.168.56.0/24 host-only network, so the separation between them is enforced by firewall rules on ports rather than by separate subnets. The firewall rules we configured in Section 4 demonstrate the same access controls that the production design would apply between subnets.
 
 ## 6. References
 
