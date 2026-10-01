@@ -14,7 +14,7 @@ We communicate face-to-face at the SYD campus. We book a group study room in the
 
 Because our classes are on Thursday and Friday, we are both already on campus on those days, so we book the study room straight after class and neither of us has to make an extra trip. We also work together in the tutorial and ask the tutor about anything we could not solve.
 
-
+**How we work.** Each of us makes our own commits for our own work, on every day we work on the project. Screenshots go in `images/` and packet captures go in `captures/`, and both are linked from the report. If one of us does not reply for four days, the other contacts the Unit Coordinator.
 
 ## Schedule
 
