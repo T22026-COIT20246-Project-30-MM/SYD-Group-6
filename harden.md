@@ -11,7 +11,9 @@ All work in this section was carried out on the OpenWRT VM provided in this unit
 
 ### 1.1 Change the Default Root Password
 
+**The risk this addresses.** The OpenWRT VM ships with a default root password that is the same on every copy of the image. Anyone who has used the same image — in our case every student in the unit, but in a real deployment every customer of that vendor — already knows it. Default credentials are one of the most common ways small business routers are compromised, because they are frequently left unchanged after installation, and automated tools scan for them constantly.
 
+For Westline IT Solutions the consequence would be severe. Root access to the router means control of the firewall, routing and DNS for the whole office, which is the gateway through which all client work is carried out.
 
 **Before — the default password is still in place.**
 
