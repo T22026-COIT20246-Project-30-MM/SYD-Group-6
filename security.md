@@ -19,3 +19,15 @@ The method works in four stages:
 2. **Identify threats and vulnerabilities.** For each meaningful pairing of a threat with an asset, we describe the specific vulnerability — the way that threat could actually be realised against that asset in this business. Each pairing is given a TVA identifier such as `T2V1A1`, meaning threat 2 exploiting vulnerability 1 against asset 1.
 3. **Rate each TVA.** Each triple is given a Likelihood and an Impact on a five-point scale.
 4. **Determine and rank risk.** The spreadsheet looks the Likelihood and Impact pair up in its risk matrix to produce a risk rating, and every TVA is ranked in order so the highest priorities are clear.
+
+#### Likelihood
+
+How probable it is that the threat successfully exploits the vulnerability against this asset, judged over a twelve-month period:
+
+| Rating | Meaning |
+|---|---|
+| Very High | Expected to occur repeatedly |
+| High | Expected to occur at least once |
+| Moderate | Could reasonably occur |
+| Low | Unlikely, but possible |
+| Very Low | Would require unusual circumstances |
