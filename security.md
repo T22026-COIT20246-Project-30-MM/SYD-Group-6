@@ -31,3 +31,37 @@ How probable it is that the threat successfully exploits the vulnerability again
 | Moderate | Could reasonably occur |
 | Low | Unlikely, but possible |
 | Very Low | Would require unusual circumstances |
+
+#### Impact
+
+The consequence for the business if the threat is realised:
+
+| Rating | Meaning |
+|---|---|
+| Very High | Threatens the survival of the business, or breaches client data |
+| High | Serious financial, legal or reputational damage |
+| Moderate | Real disruption to operations, recoverable |
+| Low | Brief disruption, no lasting damage |
+| Very Low | Absorbed in normal operation |
+
+#### Risk determination
+
+Risk is not calculated arithmetically. The spreadsheet looks the pair up in the following matrix, held on its `RiskValues` sheet:
+
+| Likelihood ↓ &nbsp; Impact → | Very Low | Low | Moderate | High | Very High |
+|---|---|---|---|---|---|
+| **Very High** | Very Low | Low | Moderate | High | **Very High** |
+| **High** | Very Low | Low | Moderate | High | **Very High** |
+| **Moderate** | Very Low | Low | Moderate | Moderate | High |
+| **Low** | Very Low | Low | Low | Low | Moderate |
+| **Very Low** | Very Low | Very Low | Very Low | Low | Low |
+
+The matrix is deliberately weighted towards impact. A threat that is almost certain to occur but causes trivial damage still resolves to Very Low, while a Very High risk requires both a Very High impact and at least a High likelihood. This means the assessment prioritises what would genuinely hurt the business rather than what merely happens often.
+
+**Ranking.** The 35 entries are ordered by risk rating, then by impact, then by likelihood, and numbered 1 to 35. Ranks are unique, so there is a single unambiguous priority order.
+
+**Worked example — rank 1.** `T2V1A1` pairs the threat *software attacks* with the asset *client administrative credentials*. The vulnerability is that phishing or malware on a staff workstation can harvest stored client admin credentials. We rated the likelihood **High**, because phishing against IT service providers is constant and automated, and the impact **Very High**, because those credentials unlock every client network, not just Westline's own. High combined with Very High gives **Very High** risk, and the highest impact places it at rank 1.
+
+Across our 35 entries we used likelihoods of High, Moderate and Low, and impacts of Very High, High and Moderate. We did not rate anything Very High likelihood or Very Low impact, because for a business of this size neither extreme was defensible for any of the pairings we identified.
+
+The assessment is scoped to the business described in our assumptions and to the network we designed and built in `network.md` and hardened in `harden.md`.
