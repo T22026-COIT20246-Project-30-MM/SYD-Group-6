@@ -5,7 +5,7 @@ SYD Group 6 — Atikur Rahman Mimmoy (12327451), Md Arman Joarder (12312653)
 
 ## 1. Assumptions
 
-The scenario does not state every detail about the business, so we have made the following assumptions. Our network design, firewall rules and risk assessment are all based on them.
+
 
 ### 1.1 Location
 
