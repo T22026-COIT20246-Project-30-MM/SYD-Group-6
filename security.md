@@ -102,13 +102,7 @@ All four describe the same attack path: a staff workstation is compromised throu
 
 ### 2.1 The Selected Data Asset
 
-Our assessment ranks **Asset 1 — Client administrative credentials** highest, at **Very High** (Likelihood High, Impact Very High) — both the highest-ranked data asset and the highest-ranked risk overall.
 
-These are the administrative accounts Westline holds for its clients' servers, firewalls and Microsoft 365 tenancies, so losing them exposes every client network the business administers — the supply chain pattern seen repeatedly against managed service providers. The consequences would include client data breaches, mandatory notification under Australian privacy law, and plausibly the end of the business. The likelihood is High because the credentials sit on staff workstations: the most exposed devices in the business, reading email and browsing the web, operated by non-specialists.
-
-The three controls below come from NIST SP 800-53 and protect the asset at three points — **at rest**, **in use**, and **in transit**.
-
----
 
 ### 2.2 Control 1 — Authenticator Management (NIST SP 800-53: IA-5)
 
