@@ -244,7 +244,6 @@ There is a second, more specific benefit here. Router advertisements are how dev
 
 ## 2. Capture and Analyse Network Traffic
 
-We captured traffic on the OpenWRT router using `tcpdump` and analysed it on the Windows host using Wireshark. Two captures were taken over the host-only network between the Windows host (192.168.56.1) and the router (192.168.56.2): one of unencrypted HTTP traffic to our business website, and one of an encrypted SSH administration session.
 
 | File | Size | Packets | Contents |
 |---|---|---|---|
