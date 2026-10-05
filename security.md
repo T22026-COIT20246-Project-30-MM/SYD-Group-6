@@ -156,36 +156,7 @@ The three controls below come from NIST SP 800-53 and protect the asset at three
 
 ### 2.4 Control 3 — Transmission Confidentiality and Integrity (NIST SP 800-53: SC-8)
 
-**Require encrypted channels for every connection carrying client credentials or client data.**
 
-**How it reduces the risk.** Controls 1 and 2 protect credentials at rest and in use; this protects them in transit. **T2V2A1** (rank 5) records that credentials sent over unencrypted protocols can be intercepted by anyone on the network path. We did not assert this — we demonstrated it. In `harden.md` Section 2.1 we captured HTTP traffic to our own website and recovered the complete page content, including our names and student IDs, with a single text search of the raw capture; the counter-test in Section 2.2 against an SSH session returned nothing. Encryption also provides **integrity**: an attacker on the path of an unencrypted connection can alter it in flight, injecting a fake login prompt to harvest credentials directly.
-
-**Implementation.**
-
-- **Migrate the website to HTTPS** with a Let's Encrypt certificate on port 443, redirecting port 80, replacing the plain-HTTP configuration in `network.md` Section 3.1. Add a matching firewall rule, following the pattern of our existing rules:
-  ```sh
-  uci set firewall.httpsrule=rule
-  uci set firewall.httpsrule.name='Allow-HTTPS'
-  uci set firewall.httpsrule.src='lan'
-  uci set firewall.httpsrule.proto='tcp'
-  uci set firewall.httpsrule.dest_port='443'
-  uci set firewall.httpsrule.target='ACCEPT'
-  uci commit firewall
-  /etc/init.d/firewall restart
-  ```
-- **Restrict LuCI to HTTPS** using uhttpd's `listen_https`; port 81 currently serves plain HTTP, so router administration is presently unencrypted.
-- **Mandate encrypted protocols for client administration** — SSH not telnet, HTTPS not HTTP, a VPN for remote access.
-- **Restrict the SSH algorithms offered.** Our capture analysis in `harden.md` Section 2.2 showed dropbear still offering `hmac-sha1` and `diffie-hellman-group14-sha1`, both SHA-1 based and obsolete.
-
-**Relationship to our own work.** This control is the direct remedy for what our own captures revealed: the HTTP capture is the evidence that plain HTTP offers no confidentiality, the SSH capture the evidence that encryption works, so the recommendation follows from our measurements rather than from general principle. It also completes the hardening — we secured *access* to the router in `harden.md` Section 1 and controlled *which services are reachable* in `network.md` Section 4, but an attacker who can do neither may still read traffic in transit.
-
-**Disadvantages.**
-
-- **Certificate management overhead.** Let's Encrypt certificates expire every 90 days, and a failed renewal breaks the site with a browser security warning — for a firm selling security services, worse than the original problem.
-- **Internal certificates are awkward.** Public CAs will not issue for internal addresses such as 51.1.30.1, so the management interface needs an internal CA or self-signed certificates, both of which train staff to click through security warnings.
-- **It does not protect endpoints.** Encryption secures data in transit only; on a compromised workstation credentials are captured as they are typed. This is precisely why the three controls are recommended together.
-
----
 
 ### 2.5 Summary
 
