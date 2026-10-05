@@ -30,7 +30,7 @@ The business has 5 staff:
 | Administrative staff | 1 | Scheduling, invoicing and general correspondence |
 | Systems administrator (part-time) | 1 | Router, server and internal network administration |
 
-
+This gives 5 Windows workstations on the internal network plus a shared network printer. Only the systems administrator needs to reach the router management interface, which is why we restrict management access rather than allowing it from every workstation. The administrative staff member needs no access to client credentials or client systems, which supports applying least privilege across the internal network.
 
 ### 1.4 Website Content
 
