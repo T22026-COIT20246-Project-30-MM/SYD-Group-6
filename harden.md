@@ -459,6 +459,16 @@ The recommendation that follows from these two captures is straightforward: the 
 ---
 
 ## 3. References
+OpenWrt Project. *Dropbear SSH Server Configuration*. https://openwrt.org/docs/guide-user/base-system/dropbear
 
+OpenWrt Project. *OpenWrt Firewall Configuration*. https://openwrt.org/docs/guide-user/firewall/firewall_configuration
+
+The Tcpdump Group. *tcpdump(8) man page*. https://www.tcpdump.org/manpages/tcpdump.1.html
+
+Wireshark Foundation. *Wireshark User's Guide*. https://www.wireshark.org/docs/wsug_html_chunked/
+
+Bernstein, D. J., Duif, N., Lange, T., Schwabe, P., and Yang, B.-Y. *High-speed high-security signatures* (Ed25519). https://ed25519.cr.yp.to/
+
+COIT20246 Cyber Security and Networking, Term 2 2026, unit lecture material and lab practicals, CQUniversity.
 
 *Generative AI (Claude) was used to help improve the wording of explanations in this report and to check command syntax. All configuration, testing, captures and screenshots are our own work, produced on the OpenWRT VM provided in this unit.*
