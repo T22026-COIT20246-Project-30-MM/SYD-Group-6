@@ -152,7 +152,7 @@ OpenWRT uses **uhttpd**. We examined `/etc/config/uhttpd` and found the VM runs 
 
 ![uhttpd configuration](images/uhttpd-config.png)
 
-Separating the two is useful for security: the business website is served to ordinary users on port 80, while router administration sits on a different port with its own document root. Management access can therefore be restricted by the firewall without affecting the public website, which is exactly what rule 4 does in Section 4.4.
+
 
 We confirmed both instances were listening with `netstat -ltn`:
 
