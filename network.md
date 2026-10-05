@@ -168,7 +168,9 @@ Port 80 is the website, 81 the management interface, 22 SSH — the three servic
 
 ### 3.2 The Website
 
+We wrote the website in HTML and placed it at `/srv/www/index.html`, the document root of the `student` instance. The page represents Westline IT Solutions and contains the business name, the services offered, the contact details and opening hours, and the project details including both of our full names, our student IDs, our group and the date the page was created.
 
+The content matches the assumptions in Section 1: a public information page only, with no client login, file upload or form collecting personal data.
 
 ![Test website in browser](images/website-browser.png)
 
