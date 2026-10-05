@@ -109,3 +109,15 @@ Vulnerability descriptions are specific to our own network rather than generic. 
 > **T2V1A1** — *Phishing or malware on a staff workstation harvests stored client admin credentials, giving access to every client network*
 
 This references the staff LAN and the workstation compromise scenario we discussed when justifying firewall rule 4 in `network.md` Section 4.4.
+
+### 1.4 TVA Matrix
+
+The TVAMatrix sheet is generated automatically from the Vulnerabilities sheet and shows which threats have been considered against which assets. We used it to check coverage before rating.
+
+![TVA Matrix — assets 1 to 9](images/tvamatrix-1.png)
+
+![TVA Matrix — assets 10 to 18](images/tvamatrix-2.png)
+
+![TVA Matrix — assets 19 to 26](images/tvamatrix-3.png)
+
+Every asset has at least one assessed vulnerability, and the data assets — the first six rows — carry the densest coverage, which reflects their importance to this business.
