@@ -46,22 +46,22 @@ Risk Assessment and Controls
 - [x] Explain controls
 
 Project Reflection
-- [ ] Include commits screenshot
-- [ ] Document task split and compare with commits
-- [ ] Reflect on teamwork
+- [x] Include commits screenshot
+- [x] Document task split and compare with commits
+- [x] Reflect on teamwork
 
 Report and Files
-- [ ] Report written on GitHub in the template .md files
-- [ ] Screenshots included in [images/](./images/) directory and linked to from report
-- [ ] Packet captures included in [captures/](./captures/) directory and linked to from report
-- [ ] Risk assessment spreadsheet included as [risk-assessment.xlsx](./risk-assessment.xlsx)
-- [ ] Video created showing required demonstrations
+- [x] Report written on GitHub in the template .md files
+- [x] Screenshots included in [images/](./images/) directory and linked to from report
+- [x] Packet captures included in [captures/](./captures/) directory and linked to from report
+- [x] Risk assessment spreadsheet included as [risk-assessment.xlsx](./risk-assessment.xlsx)
+- [x] Video created showing required demonstrations
 
 Submission
-- [ ] PDF of all .md files created
-- [ ] ZIP of GitHub repo created
-- [ ] MP4 of video created
-- [ ] PDF and ZIP submitted as attachments in Moodle
-- [ ] MP4 submitted via Echo link in Moodle
+- [x] PDF of all .md files created
+- [x] ZIP of GitHub repo created
+- [x] MP4 of video created
+- [x] PDF and ZIP submitted as attachments in Moodle
+- [x] MP4 submitted via Echo link in Moodle
 
 Refer to the Project Specification for full set of tasks and requirements.
