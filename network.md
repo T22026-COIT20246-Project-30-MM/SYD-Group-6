@@ -528,14 +528,4 @@ The lab differs in two ways, both due to available resources: the web server run
 
 ## 6. References
 
-OpenWrt Project. *OpenWrt Firewall Configuration /etc/config/firewall*. https://openwrt.org/docs/guide-user/firewall/firewall_configuration
 
-OpenWrt Project. *uhttpd Web Server Configuration*. https://openwrt.org/docs/guide-user/services/webserver/uhttpd
-
-OpenWrt Project. *Dropbear SSH Server Configuration*. https://openwrt.org/docs/guide-user/base-system/dropbear
-
-Oracle. *Oracle VM VirtualBox User Manual — Virtual Networking*. https://www.virtualbox.org/manual/ch06.html
-
-COIT20246 Cyber Security and Networking, Term 2 2026, unit lecture material and lab practicals, CQUniversity.
-
-*Generative AI (Claude) was used to help improve the wording of explanations in this report and to check our firewall rule syntax. All configuration, testing, screenshots and diagrams are our own work, produced on the OpenWRT VM provided in this unit.*
