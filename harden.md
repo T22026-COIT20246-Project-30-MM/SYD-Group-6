@@ -109,7 +109,66 @@ ssh-keygen -t ed25519 -C "syd-group-6"
 
 ![Generating the SSH key pair](images/harden3-keygen.png)
 
+The fingerprint is `SHA256:Bp9A21zUHRjRDgGwRBF3O9iuf9/TDmiL2siaakBCU7Q`.
 
+We chose **ed25519** over RSA: it gives security comparable to a 3072-bit RSA key in 256 bits, it is fast, and it avoids several classes of implementation mistake that have affected RSA. This is a deliberate contrast with Section 1.2 — where we could not choose the algorithm, here we could, and chose a modern one.
+
+| File | Contents | Where it belongs |
+|---|---|---|
+| `id_ed25519` | **Private** key | Stays on the Windows workstation |
+| `id_ed25519.pub` | **Public** key | Copied to the router |
+
+**Installing the public key on OpenWRT.**
+
+![The public key](images/harden3-pubkey.png)
+
+OpenWRT uses dropbear, which reads authorised keys from `/etc/dropbear/authorized_keys`:
+
+```sh
+mkdir -p /etc/dropbear
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFLihl2UfQC1lqQ3qetrUuHlREbc3Y3dQJVp2+cELX7h syd-group-6' >> /etc/dropbear/authorized_keys
+chmod 600 /etc/dropbear/authorized_keys
+/etc/init.d/dropbear restart
+```
+
+![Authorized keys file installed](images/harden3-authkeys.png)
+
+```
+-rw-------    1 root     root            93 Sep 27 13:28 /etc/dropbear/authorized_keys
+```
+
+The `chmod 600` is required, not cosmetic. Dropbear refuses an `authorized_keys` file writable by anyone but its owner, because any user able to write to it could append their own key and grant themselves root access without a password.
+
+**Demonstrating a successful key-based login.**
+
+![Passwordless SSH login using the key](images/harden3-after.png)
+
+The session opens directly at the OpenWrt banner with no password prompt.
+
+**Why key-based authentication is more secure than password-only authentication.**
+
+The fundamental difference is that **no reusable secret is ever sent to the server, and none is stored on it.**
+
+With a password, the client sends the actual password, the server hashes it and compares, and the server must therefore store something derived from it — the MD5-crypt hash from Section 1.2, which offers limited resistance to offline cracking.
+
+With keys, the server sends a random challenge, the client signs it with the private key, and the server verifies the signature against the public key it holds. The private key never crosses the network, and the server holds only the public key, which is useless to an attacker. Stealing `authorized_keys` yields nothing: the private key cannot be derived from it, and a previous signature cannot be replayed because each login uses a fresh challenge.
+
+In practice this means brute force becomes infeasible — there is no dictionary of likely keys and the keyspace is beyond exhaustive search; compromising the router yields no credentials that work elsewhere; and access is revocable per device, since removing one line from `authorized_keys` revokes one workstation without changing a shared password.
+
+**A trade-off we made.** We created the key without a passphrase so the demonstration login is unattended. A passphrase encrypts the private key on disk, so a stolen laptop would not immediately grant router access. In a real deployment we would use a passphrase with an SSH agent, which prompts once per session rather than per connection.
+
+**Further hardening we would recommend.** Password authentication is still enabled alongside the key. The logical next step is to disable it:
+
+```sh
+uci set dropbear.@dropbear[0].PasswordAuth='off'
+uci set dropbear.@dropbear[0].RootPasswordAuth='off'
+uci commit dropbear
+/etc/init.d/dropbear restart
+```
+
+We documented rather than applied this, because with only one authorised key installed any problem with that key would leave no way in over the network. In production it would be applied once a second administrator key had been installed and tested.
+
+---
 
 ### 1.4 Disable an Unnecessary Service
 
