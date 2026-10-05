@@ -31,7 +31,18 @@ The matrix is weighted towards impact: a near-certain threat causing trivial dam
 
 ### 1.2 Assets
 
+We identified **26 assets across all six asset types**, drawn from our own network design and assumptions:
 
+| Type | Count | Examples |
+|---|---|---|
+| **Data** | 6 | Client administrative credentials; client network documentation; client remote access details; client backup data; support tickets; router root password and SSH private key |
+| Hardware | 4 | Router/firewall (OpenWRT); web server (51.1.20.10); staff and sysadmin workstations; network printer (51.1.10.20) |
+| Software | 4 | OpenWRT firmware; uhttpd; Dropbear SSH server; dnsmasq |
+| Network | 4 | WAN link (53.10.1.0/24); staff LAN (51.1.10.0/24); server network (51.1.20.0/24); management network (51.1.30.0/24) |
+| People | 4 | Owner/principal consultant; two IT support technicians; administrative staff member; part-time systems administrator |
+| Processes | 4 | Handling client support requests; administering client systems; managing client backups; router administration over SSH |
+
+The hardware, network and software assets are the devices, subnets and services documented in `network.md` Sections 2, 3 and 5; the people are the five staff in Section 1.3. The data assets reflect what an IT services provider actually holds: as argued in `network.md` Section 1.2, Westline stores credentials, documentation, remote access details and backups belonging to its **client** businesses, which is what makes it a more attractive target than an ordinary firm of its size.
 
 ### 1.3 Threats and Vulnerabilities
 
