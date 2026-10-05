@@ -159,3 +159,14 @@ Our risk assessment ranks **Asset 1 — Client administrative credentials** as t
 The three controls below are selected from NIST SP 800-53 and address this asset at three different points: **at rest**, **in use**, and **in transit**.
 
 ---
+### 2.2 Control 1 — Authenticator Management (NIST SP 800-53: IA-5)
+
+**Implement a centralised, encrypted credential vault.**
+
+#### How it reduces the risk
+
+The highest-ranked vulnerability, T2V1A1, exists because credentials are stored on the workstations themselves — in browser password stores, spreadsheets, or documents. Malware that reaches a workstation can read all of them at once.
+
+A credential vault changes what a workstation compromise yields. Credentials are held encrypted in a dedicated store and decrypted only in memory when actually used. Malware on the workstation no longer finds a readable file of every client's passwords; it finds an encrypted vault requiring a master secret it does not have.
+
+It also addresses **T1V1A1** (rank 6) — technicians reusing, writing down or emailing passwords. A vault removes the reason to do any of those: credentials are retrievable on demand, so there is no incentive to keep a personal copy. Its generator also makes every client credential long, random and unique, so one compromised password cannot be reused elsewhere.
