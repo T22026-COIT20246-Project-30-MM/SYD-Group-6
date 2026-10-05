@@ -111,11 +111,7 @@ The VM is named "COIT20246 OpenWRT T2 2023" in VirtualBox, which is the image pr
 
 ### 2.5 How the Windows Host Connects to OpenWRT
 
-The Windows host connects over the **host-only network**, 192.168.56.0/24. VirtualBox creates a virtual adapter on the Windows host itself on this network, so the host and the VM are on the same subnet and reach each other directly. `ipconfig` shows this adapter as "Ethernet adapter Ethernet 2", holding **192.168.56.1** with a 255.255.255.0 mask and **no default gateway**. OpenWRT holds **192.168.56.2** on `br-mng`.
 
-The absence of a default gateway confirms the network is host-only: it exists purely to connect host to VM, and Windows reaches the internet through its Wi-Fi adapter on a separate network.
-
-NAT on `eth1` works differently. It allows OpenWRT to make outbound connections through the Windows host's connection, but the host cannot open a connection inwards across NAT, and 10.0.3.15 is not reachable from it. This is why all of our testing — the website, SSH, ping and the management interface — is carried out over the host-only network at 192.168.56.2.
 
 ![Windows ipconfig](images/windows-ipconfig.png)
 
