@@ -46,24 +46,6 @@ The hardware, network and software assets are the devices, subnets and services 
 
 ### 1.3 Threats and Vulnerabilities
 
-We recorded **35 TVA entries covering all 12 information security threats**; the specification requires at least 8.
-
-| Threat | Entries | Threat | Entries |
-|---|---|---|---|
-| 1 People errors | 9 | 7 Forces of nature | 1 |
-| 2 Software attacks | 12 | 8 Technical hardware failures | 2 |
-| 3 Information extortion | 1 | 9 Technical software failures | 1 |
-| 4 Espionage and trespass | 4 | 10 Changing quality of services | 3 |
-| 5 Theft | 1 | 11 Sabotage and vandalism | 1 |
-| 6 Technological obsolescence | 1 | 12 IP compromises | 1 |
-
-The distribution is deliberately uneven. People errors and software attacks dominate because those are the threats that most plausibly affect a five-person business working over the internet; forces of nature and IP compromises are assessed, but one well-chosen vulnerability reflects their real weight better than padding them out.
-
-Vulnerability descriptions are specific to our network rather than generic. The highest-ranked entry is:
-
-> **T2V1A1** — *Phishing or malware on a staff workstation harvests stored client admin credentials, giving access to every client network*
-
-This references the workstation compromise scenario used to justify firewall rule 4 in `network.md` Section 4.4.
 
 ### 1.4 TVA Matrix
 
