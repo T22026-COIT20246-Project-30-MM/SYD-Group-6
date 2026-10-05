@@ -206,3 +206,28 @@ With single-factor authentication, a captured password is immediately usable. Wi
 This directly reduces the likelihood of T2V1A1 being successfully exploited. It also mitigates **T2V2A1** (rank 5), where credentials could be intercepted in transit: an intercepted password without the second factor does not grant access.
 
 Critically, MFA on the vault itself answers the single-point-of-failure objection raised against Control 1.
+
+#### How it would be implemented here
+
+- Enforce MFA on the password vault for all five staff, with no exemptions — an exempt account becomes the attacker's target.
+- Enforce MFA on every client system that supports it: Microsoft 365 tenancies, remote access gateways, and client firewall administration interfaces.
+- Issue **hardware security keys** (FIDO2, such as YubiKeys) to the owner and the systems administrator, whose accounts carry the widest access. Hardware keys resist phishing in a way that app-generated codes do not, because the key verifies the site's identity cryptographically and simply will not authenticate to a fraudulent domain.
+- Use an authenticator app for the two technicians and the administrative staff member as a lower-cost option.
+- Avoid SMS as a second factor. It is vulnerable to SIM-swap attacks and is no longer considered adequate for privileged access.
+- Document break-glass recovery: recovery codes printed and stored in the office safe, so a lost token does not lock the business out of its own client systems.
+
+#### Relationship to our network setup and hardening
+
+This extends a principle we already applied. In `harden.md` Section 1.3 we replaced password authentication on the router with SSH key-based authentication, precisely because possession of a key is stronger than knowledge of a password, and because no reusable secret is stored on the server. MFA applies that same reasoning to the client systems and cloud services the router itself cannot protect.
+
+It also compensates for a limitation we documented. In `network.md` Section 4.2 we noted that moving SSH to port 2222 is obscurity rather than real protection, and in `harden.md` Section 1.2 that OpenWRT neither stores passwords robustly nor enforces password strength. MFA reduces the consequences of exactly those weaknesses: even a weak or exposed password is not enough by itself.
+
+#### Disadvantages
+
+- **Friction on every login.** Five staff authenticating to multiple client systems daily will each lose seconds to minutes per login. For a business billing by the hour that is a measurable cost, and it is the most common reason MFA rollouts get quietly disabled.
+- **Token loss and lockout.** A lost phone or key locks a technician out mid-support-call. Recovery processes must be in place and tested, and they themselves become a target for social engineering — an attacker calling the helpdesk claiming to have lost their token.
+- **Not all client systems support it.** Older client hardware and legacy applications may offer no MFA option, so coverage will be incomplete and the business must track which systems remain single-factor.
+- **Hardware cost.** FIDO2 keys are roughly AU$50–80 each, and spares are needed, so realistically four to six keys.
+- **MFA fatigue attacks.** Where push-approval prompts are used, attackers repeatedly trigger prompts until a tired user approves one. Number matching or hardware keys avoid this, but it must be configured for rather than assumed.
+
+---
