@@ -11,7 +11,52 @@ All work in this section was carried out on the OpenWRT VM provided in this unit
 
 ### 1.1 Change the Default Root Password
 
+**The risk this addresses.** The OpenWRT VM ships with a default root password that is identical on every copy of the image, so everyone who has used that image already knows it. Default credentials are one of the most common ways small business routers are compromised, and automated tools scan for them constantly. For Westline IT Solutions, root access to the router means control of the firewall, routing and DNS for the whole office.
 
+**Before — the default password is still in place.**
+
+```sh
+cat /etc/shadow
+```
+
+![Password hash before the change](images/harden1-shadow-before.png)
+
+```
+root:$1$3a5XsGay$jC88WNh...:19398:0:99999:7:::
+```
+
+The third field, `19398`, is the number of days since 1 January 1970 on which the password was last changed — **10 February 2023**, the date the image was built. It had never been changed.
+
+**The change.**
+
+```sh
+passwd
+```
+
+![Changing the root password](images/harden1-passwd.png)
+
+**After — a new hash is stored.**
+
+![Password hash after the change](images/harden1-shadow-after.png)
+
+```
+root:$1$.uLexRAq$hHOIu6d...:20723:0:99999:7:::
+```
+
+Three things changed and one did not:
+
+| Field | Before | After |
+|---|---|---|
+| Algorithm prefix | `$1$` | `$1$` — **unchanged** |
+| Salt | `3a5XsGay` | `.uLexRAq` |
+| Hash | `jC88WNh...` | `hHOIu6d...` |
+| Last changed (days since epoch) | 19398 — 10 Feb 2023 | 20723 — 27 Sep 2026 |
+
+The salt and hash are completely different and the date updated to the day we made the change. The algorithm did not change, which we examine in Section 1.2.
+
+*Note: the hashes in our screenshots are truncated. Publishing a complete hash would allow it to be attacked offline — the very risk this section is about.*
+
+---
 
 ### 1.2 Examine How Passwords Are Stored
 
