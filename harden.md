@@ -172,75 +172,7 @@ We documented rather than applied this, because with only one authorised key ins
 
 ### 1.4 Disable an Unnecessary Service
 
-**The risk this addresses.** Every service running on a device is code that can contain vulnerabilities, and every service listening on the network is a way in. A service that is not needed provides no benefit but carries the same risk as one that is. Reducing the number of running services reduces the attack surface, and it is one of the cheapest hardening measures available, because there is no loss of functionality if the service genuinely is not used.
 
-**Identifying what is running.**
-
-```sh
-ls /etc/rc.d/ | grep '^S'
-```
-
-```
-S00sysfixtime   S12log      S19firewall   S50cron      S95done
-S00urngd        S12rpcd     S20network    S50uhttpd    S96led
-S10boot         S19dnsmasq  S35odhcpd     S80ucitrack  S98sysntpd
-S10system       S19dropbear S94gpio_switch S99urandom_seed
-S11sysctl
-```
-
-![Services configured to start at boot](images/harden4-services.png)
-
-We reviewed these against what our network actually needs:
-
-| Service | Needed? | Reason |
-|---|---|---|
-| `dropbear` | Yes | SSH administration (Section 1.3) |
-| `uhttpd` | Yes | The business website and LuCI |
-| `firewall` | Yes | All four rules in `network.md` |
-| `network` | Yes | Core networking |
-| `dnsmasq` | Yes | DNS and DHCP for the LAN |
-| `log`, `sysntpd` | Yes | Logging, and accurate timestamps for those logs |
-| `rpcd` | Yes | Required by the LuCI management interface |
-| **`odhcpd`** | **No** | IPv6 DHCP and router advertisements — our network is IPv4-only |
-| `gpio_switch`, `led` | No | Control physical hardware that does not exist on a VM |
-
-**The service we disabled: `odhcpd`.** It is the clearest case of a service that is both unnecessary and network-facing. Our lab network and our production design in `network.md` are IPv4 throughout, so odhcpd provides nothing while still running as root and processing network input. The `gpio_switch` and `led` services are equally pointless on a VM, but they accept no network traffic, so removing them would not reduce exposure in the same way.
-
-**Before — odhcpd is running and set to start at boot.**
-
-```sh
-ps w | grep odhcpd
-ls /etc/rc.d/ | grep odhcpd
-```
-
-```
- 1887 root      1092 S    /usr/sbin/odhcpd
-K85odhcpd
-S35odhcpd
-```
-
-![odhcpd running before](images/harden4-before.png)
-
-**Disabling it.**
-
-```sh
-/etc/init.d/odhcpd stop
-/etc/init.d/odhcpd disable
-```
-
-Both commands are needed. `stop` terminates the running process; `disable` removes the `S35odhcpd` startup symlink so it does not return after a reboot. Using `stop` alone would appear to work until the next restart.
-
-**After — the process is gone and it will not return.**
-
-![odhcpd disabled after](images/harden4-after.png)
-
-The only remaining line in `ps` is the `grep` itself, and `ls /etc/rc.d/` returns nothing for odhcpd — both symlinks removed.
-
-**Why disabling unnecessary services improves security.** Code that is not running cannot be exploited: a future vulnerability in odhcpd would not affect this router, and there is one less component to patch and monitor.
-
-There is a second, more specific benefit here. Router advertisements are how devices learn their IPv6 configuration, including the default gateway. On a network where IPv6 is not managed or monitored, an attacker with a foothold can use rogue router advertisements to make themselves the default IPv6 gateway and intercept traffic, while administrators watch IPv4 and see nothing wrong. Turning off unused IPv6 services removes an entire parallel network stack that nobody at the business is paying attention to.
-
----
 
 ## 2. Capture and Analyse Network Traffic
 
