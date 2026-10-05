@@ -170,3 +170,26 @@ The highest-ranked vulnerability, T2V1A1, exists because credentials are stored 
 A credential vault changes what a workstation compromise yields. Credentials are held encrypted in a dedicated store and decrypted only in memory when actually used. Malware on the workstation no longer finds a readable file of every client's passwords; it finds an encrypted vault requiring a master secret it does not have.
 
 It also addresses **T1V1A1** (rank 6) — technicians reusing, writing down or emailing passwords. A vault removes the reason to do any of those: credentials are retrievable on demand, so there is no incentive to keep a personal copy. Its generator also makes every client credential long, random and unique, so one compromised password cannot be reused elsewhere.
+
+#### How it would be implemented here
+
+- Deploy a team password manager (for example Bitwarden or 1Password for Business) with a vault shared across the five staff.
+- Organise the vault into collections per client, so each technician sees only the clients they support. The administrative staff member gets no access to client credentials at all — consistent with the least privilege point in `network.md` Section 1.3.
+- Migrate every existing credential into the vault, then **delete the originals** from workstations, spreadsheets and browser stores. Migration without deletion leaves the original exposure intact.
+- Rotate every credential during migration, since any that were previously stored in plaintext must be assumed exposed.
+- Enable audit logging so credential access is recorded — which also improves detection for `harden.md` Section 1.4's point about knowing what normal looks like.
+
+#### Relationship to our network setup and hardening
+
+This control reinforces the principle demonstrated in `harden.md` Section 1.2, where we found root passwords stored as MD5-crypt hashes. The lesson there was that **how a secret is stored determines how much protection it offers when the storage is stolen**. That finding applies directly here: client credentials in a plaintext file on a workstation have no protection at all, while credentials in an encrypted vault remain protected even after the file is exfiltrated.
+
+The vault also complements firewall rule 4 (`network.md` Section 4.4). That rule prevents a compromised workstation from reaching the router's management interface; the vault prevents the same workstation from yielding the credentials for client systems. Together they contain a workstation compromise to that one machine.
+
+#### Disadvantages
+
+- **It creates a single high-value target.** Every credential now sits in one system. If the master password or vault account is compromised, the attacker gets everything at once. This makes protecting the vault itself critical — which is why Control 2 matters.
+- **Cost.** A business plan is roughly AU$5–10 per user per month. For five staff that is a real, recurring expense for a small business.
+- **Availability risk.** If the vault service is unreachable — during the NBN outage we assessed as T10V1A15 — staff cannot retrieve credentials and cannot support clients. Offline caching mitigates this but must be configured deliberately.
+- **Adoption friction.** Technicians used to a saved browser password will find the vault slower. If it is inconvenient enough, staff will work around it by keeping local copies, which reintroduces exactly the vulnerability the control was meant to remove. Success depends as much on training and enforcement as on the software.
+
+---
