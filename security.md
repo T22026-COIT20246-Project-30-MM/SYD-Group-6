@@ -77,7 +77,25 @@ The TVAMatrix sheet is generated from the Vulnerabilities sheet and shows which 
 Every asset has at least one assessed vulnerability, and the data assets — the first six rows — carry the densest coverage.
 
 ### 1.5 Results
+| Risk | Count |
+|---|---|
+| Very High | 4 |
+| High | 12 |
+| Moderate | 15 |
+| Low | 4 |
 
+The four Very High risks, all rated High likelihood with Very High impact:
+
+| Rank | TVA | Asset | Type | Vulnerability |
+|---|---|---|---|---|
+| **1** | T2V1A1 | Client administrative credentials | Data | Phishing or malware on a staff workstation harvests stored client admin credentials |
+| 2 | T2V1A3 | Client remote access details | Data | Ransomware on a technician workstation encrypts or steals saved remote access details |
+| 3 | T2V1A9 | Staff and sysadmin workstations | Hardware | Phishing or malware compromises a staff workstation, the most common entry point |
+| 4 | T1V1A21 | Administrative staff member | People | Admin staff open a malicious attachment; their workstation can reach stored client credentials |
+
+All four describe the same attack path: a staff workstation is compromised through phishing or malware, and from that foothold the attacker reaches credentials that unlock client networks. The assessment converges on one problem rather than four unrelated ones, which makes the controls in Section 2 straightforward to prioritise.
+
+---
 
 
 ## 2. Recommended Security Controls
