@@ -402,7 +402,57 @@ uci commit firewall
 
 ### 4.4 Rule 4 — Restrict Management Interface Access
 
+**Purpose.** The LuCI management interface on port 81 gives complete control of the router — firewall rules, routing, passwords and all network settings. Under our assumptions only the systems administrator needs it. Rather than blocking port 81 outright, we restricted it to the administrator's workstation.
 
+> Before applying this rule we kept the VirtualBox console session open, so that if we lost both SSH and web access we could still reach the VM and remove the rule.
+
+**Before — the management interface is reachable.**
+
+Loading `http://192.168.56.2:81/cgi-bin/luci/` displayed the LuCI login page, showing that any machine on the internal network could reach the router's administration interface.
+
+![Management interface reachable](images/fw4-before.png)
+
+**The rules.** This needs two rules working together, and the order matters because OpenWRT evaluates them in sequence:
+
+```sh
+uci set firewall.mgmtallow=rule
+uci set firewall.mgmtallow.name='Allow-Mgmt-Admin'
+uci set firewall.mgmtallow.src='lan'
+uci set firewall.mgmtallow.proto='tcp'
+uci set firewall.mgmtallow.src_ip='192.168.56.10'
+uci set firewall.mgmtallow.dest_port='81'
+uci set firewall.mgmtallow.target='ACCEPT'
+
+uci set firewall.mgmtblock=rule
+uci set firewall.mgmtblock.name='Block-Mgmt-Others'
+uci set firewall.mgmtblock.src='lan'
+uci set firewall.mgmtblock.proto='tcp'
+uci set firewall.mgmtblock.dest_port='81'
+uci set firewall.mgmtblock.target='REJECT'
+
+uci commit firewall
+/etc/init.d/firewall restart
+```
+
+![Management interface rules](images/fw4-rule.png)
+
+The first rule permits port 81 from 192.168.56.10, the systems administrator's workstation; the second rejects port 81 from everything else. Because the allow rule is evaluated first, the administrator's machine is permitted before the blanket rejection is reached. Reversing the order would reject every connection including the administrator's.
+
+This is an **allow-list** approach: rather than naming the machines that are forbidden, we name the one that is permitted and refuse everything else by default, so any new workstation is denied management access automatically.
+
+**After — access is refused.**
+
+Our Windows host at 192.168.56.1 represents an ordinary staff workstation, not the administrator's machine. Reloading the management interface returns `ERR_CONNECTION_REFUSED`.
+
+![Management interface refused](images/fw4-after.png)
+
+The website on port 80 continues to load throughout, confirming the restriction applies specifically to the management interface.
+
+**How this contributes to network security.** This is the most important of the four rules for Westline IT Solutions. The company's highest-value asset is the administrative credentials it holds for client networks, and the router is the gateway through which client work is carried out.
+
+If a staff workstation were compromised by phishing or malware — the most common entry point for a small business — the attacker would gain a foothold on the internal network. Without this rule the malware could reach the router's administration interface and attempt to brute-force the login, alter firewall rules, change DNS settings to redirect staff to fraudulent sites, or capture traffic. With the rule in place the compromised workstation cannot even establish a connection to the management port, so the foothold is contained to that single machine.
+
+This is defence in depth: the login password protects the interface, and the firewall rule ensures most attackers never reach the login prompt at all.
 
 ## 5. Production Network Design
 
