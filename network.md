@@ -9,7 +9,9 @@ The scenario does not state every detail about the business, so we have made the
 
 ### 1.1 Location
 
+The business is located in Sydney, New South Wales, in a leased office on Level 2 of a small commercial building in Parramatta.
 
+We assume a single office in one location, so the business needs only one local network, one internet connection and one router/firewall, with no links to branch offices. All staff work from this office, so we do not design for remote access or VPN connections.
 
 ### 1.2 Type of Professional Services
 
