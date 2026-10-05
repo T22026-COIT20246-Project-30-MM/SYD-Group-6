@@ -478,7 +478,20 @@ Source file: [`images/Production-Network-Diagram.drawio`](images/Production-Netw
 
 ### 5.2 IP Addressing Requirements
 
+The addressing follows the requirements in Section 4.1.5 of the project specification:
 
+- Only **/16 or /24** network masks are used.
+- The first octet of every address is the last two digits of a group member's student ID — **51** (from 12327451) or **53** (from 12312653).
+- No private addresses such as 192.168.x.y are used anywhere in the production design.
+
+| Network | Address range | Mask | Purpose |
+|---|---|---|---|
+| WAN link | 53.10.1.0/24 | 255.255.255.0 | The link between the ISP and the router/firewall |
+| Staff LAN | 51.1.10.0/24 | 255.255.255.0 | Staff workstations and the network printer |
+| Server network | 51.1.20.0/24 | 255.255.255.0 | The public web server |
+| Management | 51.1.30.0/24 | 255.255.255.0 | Router management access |
+
+We used /24 subnets throughout. A /24 provides 254 usable addresses, far more than a five-person business needs, but it is the smallest mask the specification permits and it keeps the addressing simple. Using separate subnets rather than one flat network is what allows the firewall to control traffic between the staff, server and management areas.
 
 ### 5.3 Address Allocation
 
