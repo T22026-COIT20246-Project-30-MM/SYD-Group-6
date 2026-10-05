@@ -189,17 +189,7 @@ The three controls below come from NIST SP 800-53 and protect the asset at three
 
 ### 2.5 Summary
 
-| Control | NIST | Protects credentials | Addresses |
-|---|---|---|---|
-| Credential vault | IA-5 | **At rest** | T2V1A1 (rank 1), T1V1A1 (rank 6) |
-| Multi-factor authentication | IA-2(1) | **In use** | T2V1A1 (rank 1), T2V2A1 (rank 5) |
-| Encrypted transmission | SC-8 | **In transit** | T2V2A1 (rank 5) |
 
-The three are deliberately layered, each covering a weakness in the others: the vault concentrates credentials into one place, so MFA protects that place; MFA depends on credentials not being trivially interceptable, so encryption protects them in transit; encryption protects nothing on a compromised endpoint, which is why credentials sit in an encrypted vault rather than a browser store. An attacker must defeat all three to obtain usable client credentials.
-
-None of them eliminates the risk — our highest-ranked vulnerability begins with a person clicking a link in an email, and no technical control prevents that entirely. What they change is the *consequence*, turning a full compromise of every client network into an incident contained to a single workstation.
-
----
 
 ## 3. References
 
