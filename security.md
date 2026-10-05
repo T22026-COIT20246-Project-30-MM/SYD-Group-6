@@ -203,18 +203,5 @@ None of them eliminates the risk — our highest-ranked vulnerability begins wit
 
 ## 3. References
 
-National Institute of Standards and Technology. *SP 800-30 Rev. 1: Guide for Conducting Risk Assessments*. https://csrc.nist.gov/pubs/sp/800/30/r1/final
-
-National Institute of Standards and Technology. *SP 800-53 Rev. 5: Security and Privacy Controls for Information Systems and Organizations*. https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final
-
-National Institute of Standards and Technology. *SP 800-63B: Digital Identity Guidelines — Authentication and Lifecycle Management*. https://pages.nist.gov/800-63-3/sp800-63b.html
-
-Australian Cyber Security Centre. *Essential Eight Maturity Model*. https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight
-
-Office of the Australian Information Commissioner. *Notifiable Data Breaches scheme*. https://www.oaic.gov.au/privacy/notifiable-data-breaches
-
-Let's Encrypt. *Getting Started*. https://letsencrypt.org/getting-started/
-
-COIT20246 Cyber Security and Networking, Term 2 2026, unit lecture material, risk assessment process and TVAMatrix template, CQUniversity.
 
 *Generative AI (Claude) was used to help improve the wording of explanations in this section and to check our risk assessment for completeness. The asset identification, vulnerability descriptions, likelihood and impact ratings, and the ranking in `risk-assessment.xlsx` are our own work, based on the network we designed and built in `network.md` and hardened in `harden.md`.*
