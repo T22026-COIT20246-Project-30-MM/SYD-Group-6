@@ -99,7 +99,13 @@ The practical consequence is that the strength of the root password is doing all
 
 ### 1.3 Set Up SSH Key-Based Authentication
 
+**The risk this addresses.** With password authentication, anyone who can reach the SSH port can attempt to log in, and the only barrier is a secret that can be guessed. Automated tools try thousands of passwords per minute, and passwords can also be reused, phished, shoulder-surfed or captured by a keylogger. Key-based authentication removes the guessable secret entirely.
 
+**Generating the key pair.** We generated the pair on the Windows host, not the router, because the private key must stay on the client:
+
+```
+ssh-keygen -t ed25519 -C "syd-group-6"
+```
 
 ![Generating the SSH key pair](images/harden3-keygen.png)
 
