@@ -75,7 +75,7 @@ We ran `ip addr` on the OpenWRT VM to list every interface and its address.
 | `eth1` | 10.0.3.15/24 | 08:00:27:59:19:60 | NAT | The WAN side, providing outbound internet access through the Windows host |
 | `br-mng` | 192.168.56.2/24 | 08:00:27:e4:b4:9d | *(bridge over eth0)* | The management bridge — the address the Windows host uses for the website, SSH, ping and the management interface |
 
-**Why `eth0` has no IP address.** `eth0` and `br-mng` share the same MAC address, `08:00:27:e4:b4:9d`. This shows `eth0` is not an independent interface but a port bridged into `br-mng`. In a Linux bridge the member ports operate at layer 2 and carry no IP address of their own; the bridge interface holds the layer 3 address for the whole bridge. All traffic arriving on `eth0` from the Windows host is therefore handled by `br-mng` at 192.168.56.2.
+
 
 **The two networks.** Each has a different job:
 
