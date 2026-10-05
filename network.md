@@ -92,7 +92,7 @@ default via 10.0.3.2 dev eth1  src 10.0.3.15
 
 ![ip route output](images/ip-route.png)
 
-
+The **default route** — the path for traffic not destined for a directly connected network — goes out through `eth1` to 10.0.3.2, the VirtualBox NAT gateway, so all internet-bound traffic leaves over NAT. The 192.168.56.0/24 network is reached directly through `br-mng` with no gateway, because the Windows host is on the same subnet.
 
 ### 2.4 VirtualBox Adapter Configuration
 
