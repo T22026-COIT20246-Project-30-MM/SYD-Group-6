@@ -38,7 +38,7 @@ The website is a public information site only. It shows the business name, a des
 
 It has no client logins, support ticket portal, file uploads, online payments or database, and collects no personal information. We assume clients raise support requests by phone and email.
 
-This keeps the web server simple, since no database or user authentication is required. The site still needs protection: if it were defaced or taken offline the business would lose credibility with existing clients and appear untrustworthy to new ones. For a business selling cyber security services a visibly compromised website is especially damaging — a reputational risk rather than a data breach risk, but a serious one.
+
 
 ## 2. Lab Network — OpenWRT and VirtualBox
 
