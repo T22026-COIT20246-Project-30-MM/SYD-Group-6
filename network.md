@@ -42,7 +42,7 @@ This keeps the web server simple, since no database or user authentication is re
 
 ## 2. Lab Network — OpenWRT and VirtualBox
 
-
+This section documents the lab network we built using the OpenWRT VM provided in this unit, running in VirtualBox on a Windows host.
 
 ### 2.1 OpenWRT Version
 
