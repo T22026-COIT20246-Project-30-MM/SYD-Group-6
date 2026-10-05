@@ -231,3 +231,50 @@ It also compensates for a limitation we documented. In `network.md` Section 4.2 
 - **MFA fatigue attacks.** Where push-approval prompts are used, attackers repeatedly trigger prompts until a tired user approves one. Number matching or hardware keys avoid this, but it must be configured for rather than assumed.
 
 ---
+### 2.4 Control 3 — Transmission Confidentiality and Integrity (NIST SP 800-53: SC-8)
+
+**Require encrypted channels for every connection that carries client credentials or client data.**
+
+#### How it reduces the risk
+
+Controls 1 and 2 protect credentials at rest and at the point of use. This control protects them while they travel across a network.
+
+Vulnerability **T2V2A1** (rank 5, High) records that credentials sent over unencrypted protocols can be intercepted by anyone on the network path. We did not assert this — we demonstrated it. In `harden.md` Section 2.1 we captured HTTP traffic to our own website and recovered the complete page content, including names and student IDs, with a single text search of the raw capture file. Anything transmitted over HTTP, including a password typed into a login form, is exposed the same way.
+
+The counter-demonstration is in Section 2.2 of the same file: the identical test against an SSH session returned nothing. Encryption is what made the difference, using the same network and the same tools.
+
+Encryption also provides **integrity**, which is easy to overlook. As noted in `harden.md` Section 2.1, an attacker on the path of an unencrypted connection can alter it in flight — injecting a fake login prompt to harvest credentials directly, for instance. An encrypted, authenticated channel makes tampering detectable.
+
+#### How it would be implemented here
+
+- **Migrate the business website to HTTPS.** Obtain a certificate from Let's Encrypt and configure uhttpd to serve TLS on port 443, redirecting port 80 to it. This replaces the plain-HTTP configuration documented in `network.md` Section 3.1.
+- **Add a firewall rule for HTTPS.** Following the same pattern as our existing rules in `network.md` Section 4:
+  ```sh
+  uci set firewall.httpsrule=rule
+  uci set firewall.httpsrule.name='Allow-HTTPS'
+  uci set firewall.httpsrule.src='lan'
+  uci set firewall.httpsrule.proto='tcp'
+  uci set firewall.httpsrule.dest_port='443'
+  uci set firewall.httpsrule.target='ACCEPT'
+  uci commit firewall
+  /etc/init.d/firewall restart
+  ```
+- **Restrict the LuCI management interface to HTTPS.** OpenWRT's uhttpd supports `listen_https`; port 81 currently serves plain HTTP, so administrative sessions to the router are presently unencrypted.
+- **Mandate encrypted protocols for all client administration.** SSH rather than telnet, HTTPS rather than HTTP, and a VPN for any remote access to client networks. No client credential should ever be typed into an unencrypted session.
+- **Restrict the SSH algorithms offered.** Our capture analysis in `harden.md` Section 2.2 showed dropbear still offering `hmac-sha1` and `diffie-hellman-group14-sha1`, both SHA-1 based and obsolete. Removing them from the offered set closes the possibility of a downgrade against an older client.
+
+#### Relationship to our network setup and hardening
+
+This control is the direct remedy for what our own packet captures revealed. The HTTP capture in `harden.md` Section 2.1 is the evidence that plain HTTP offers no confidentiality; the SSH capture in Section 2.2 is the evidence that encryption works. The recommendation follows from our own measurements rather than from general principle.
+
+It also completes the hardening work. We secured *access* to the router in `harden.md` Sections 1.1 to 1.4 and controlled *which services are reachable* in `network.md` Section 4. Encrypting the channels themselves addresses the remaining gap: an attacker who cannot log in and cannot reach the management port may still be able to read traffic in transit.
+
+#### Disadvantages
+
+- **Certificate management overhead.** Certificates expire — Let's Encrypt certificates every 90 days. If renewal fails, the website breaks with a browser security warning, which for a firm selling security services is worse than the original problem. Automated renewal must be configured and monitored.
+- **Internal certificates are awkward.** Public certificate authorities will not issue certificates for internal addresses such as 51.1.30.1, so the management interface needs either an internal certificate authority or self-signed certificates, both of which produce browser warnings that train staff to click through security prompts — a habit with its own risk.
+- **Performance and hardware limits.** TLS adds computational overhead. A consumer-grade router handling encryption for the whole office may become a bottleneck, and the business may need better hardware.
+- **Configuration is easy to get wrong.** HTTPS with an expired certificate, a weak cipher suite, or mixed HTTP content provides less protection than it appears to, while giving staff and clients false confidence.
+- **It does not protect endpoints.** Encryption secures data in transit only. If a workstation is compromised, credentials are captured as they are typed, before encryption applies. This is precisely why the three controls are recommended together rather than individually.
+
+---
