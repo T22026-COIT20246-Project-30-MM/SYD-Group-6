@@ -82,3 +82,30 @@ We identified **26 assets across all six asset types**, drawn directly from our 
 The hardware, network and software assets correspond to the devices, subnets and services documented in `network.md` Sections 2, 3 and 5 and `harden.md` Section 1.4. The people correspond to the five staff in our assumptions (`network.md` Section 1.3).
 
 The data assets reflect what an IT services provider actually holds. As argued in `network.md` Section 1.2, Westline stores administrative credentials, network documentation, remote access details and backup data belonging to its **client** businesses. This is what makes the business a more attractive target than an ordinary firm of its size.
+
+### 1.3 Threats and Vulnerabilities
+
+We recorded **35 threat/vulnerability/asset entries covering all 12 information security threats** — the specification requires at least 8.
+
+| Threats covered | TVA entries |
+|---|---|
+| 1 People errors | 9 |
+| 2 Software attacks | 12 |
+| 3 Information extortion | 1 |
+| 4 Espionage and trespass | 4 |
+| 5 Theft | 1 |
+| 6 Technological obsolescence | 1 |
+| 7 Forces of nature | 1 |
+| 8 Technical hardware failures | 2 |
+| 9 Technical software failures | 1 |
+| 10 Changing quality of services | 3 |
+| 11 Sabotage and vandalism | 1 |
+| 12 IP compromises | 1 |
+
+The distribution is deliberately uneven. People errors and software attacks dominate because those are the threats that most plausibly affect a five-person professional services business working over the internet. Forces of nature and IP compromises are present and assessed, but a single well-chosen vulnerability reflects their real weight for this business better than padding them out.
+
+Vulnerability descriptions are specific to our own network rather than generic. For example, the highest-ranked entry is:
+
+> **T2V1A1** — *Phishing or malware on a staff workstation harvests stored client admin credentials, giving access to every client network*
+
+This references the staff LAN and the workstation compromise scenario we discussed when justifying firewall rule 4 in `network.md` Section 4.4.
