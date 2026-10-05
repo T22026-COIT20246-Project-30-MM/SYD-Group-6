@@ -278,3 +278,36 @@ It also completes the hardening work. We secured *access* to the router in `hard
 - **It does not protect endpoints.** Encryption secures data in transit only. If a workstation is compromised, credentials are captured as they are typed, before encryption applies. This is precisely why the three controls are recommended together rather than individually.
 
 ---
+### 2.5 Summary
+
+| Control | NIST | Protects credentials | Addresses |
+|---|---|---|---|
+| Credential vault | IA-5 | **At rest** | T2V1A1 (rank 1), T1V1A1 (rank 6) |
+| Multi-factor authentication | IA-2(1) | **In use** | T2V1A1 (rank 1), T2V2A1 (rank 5) |
+| Encrypted transmission | SC-8 | **In transit** | T2V2A1 (rank 5) |
+
+The three controls are deliberately layered, and each covers a weakness in the others. The vault concentrates credentials into one place, so MFA protects that place. MFA depends on credentials not being trivially interceptable, so encryption protects them in transit. Encryption protects nothing on a compromised endpoint, which is why credentials are held in an encrypted vault rather than in browser stores in the first place.
+
+This is defence in depth applied to a single asset: an attacker must defeat all three to obtain usable client credentials, rather than any one of them.
+
+None of the three eliminates the risk. Our highest-ranked vulnerability begins with a person clicking a link in an email, and no technical control prevents that entirely. What these controls change is the *consequence* — turning a full compromise of every client network into an incident contained to a single workstation.
+
+---
+
+## 3. References
+
+National Institute of Standards and Technology. *SP 800-30 Rev. 1: Guide for Conducting Risk Assessments*. https://csrc.nist.gov/pubs/sp/800/30/r1/final
+
+National Institute of Standards and Technology. *SP 800-53 Rev. 5: Security and Privacy Controls for Information Systems and Organizations*. https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final
+
+National Institute of Standards and Technology. *SP 800-63B: Digital Identity Guidelines — Authentication and Lifecycle Management*. https://pages.nist.gov/800-63-3/sp800-63b.html
+
+Australian Cyber Security Centre. *Essential Eight Maturity Model*. https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight
+
+Office of the Australian Information Commissioner. *Notifiable Data Breaches scheme*. https://www.oaic.gov.au/privacy/notifiable-data-breaches
+
+Let's Encrypt. *Getting Started*. https://letsencrypt.org/getting-started/
+
+COIT20246 Cyber Security and Networking, Term 2 2026, unit lecture material, risk assessment process and TVAMatrix template, CQUniversity.
+
+*Generative AI (Claude) was used to help improve the wording of explanations in this section and to check our risk assessment for completeness. The asset identification, vulnerability descriptions, likelihood and impact ratings, and the ranking in `risk-assessment.xlsx` are our own work, based on the network we designed and built in `network.md` and hardened in `harden.md`.*
