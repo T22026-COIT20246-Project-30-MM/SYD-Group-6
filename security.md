@@ -134,25 +134,7 @@ The three controls below come from NIST SP 800-53 and protect the asset at three
 
 ### 2.3 Control 2 — Multi-Factor Authentication (NIST SP 800-53: IA-2(1))
 
-**Require a second authentication factor for the vault and for all administrative access to client systems.**
 
-**How it reduces the risk.** Control 1 protects credentials while stored; MFA changes what a stolen credential is *worth*. A password harvested by malware, phished, or captured from the network is no longer enough on its own, because the attacker also needs something the user physically holds. This lowers the likelihood of T2V1A1 succeeding and mitigates **T2V2A1** (rank 5), where credentials could be intercepted in transit. MFA on the vault itself answers the single-point-of-failure objection to Control 1.
-
-**Implementation.**
-
-- Enforce MFA on the vault for all five staff with no exemptions — an exempt account becomes the target — and on every client system that supports it.
-- Issue **FIDO2 hardware keys** to the owner and systems administrator, whose accounts carry the widest access; hardware keys resist phishing because the key verifies the site cryptographically and will not authenticate to a fraudulent domain. Authenticator apps are a lower-cost option for the other three staff.
-- Avoid SMS, which is vulnerable to SIM-swap attacks, and document break-glass recovery with codes printed and held in the office safe.
-
-**Relationship to our own work.** This extends what we did in `harden.md` Section 1.3, where we replaced password authentication on the router with SSH keys, because possession of a key beats knowledge of a password and no reusable secret is stored on the server. It also compensates for limitations we documented: `network.md` Section 4.2 notes that moving SSH to port 2222 is obscurity rather than protection, and `harden.md` Section 1.2 that OpenWRT neither stores passwords robustly nor enforces strength. MFA means a weak or exposed password is still not enough.
-
-**Disadvantages.**
-
-- **Friction on every login.** Five staff authenticating to multiple client systems daily lose measurable billable time, which is the most common reason MFA rollouts get quietly disabled.
-- **Token loss and lockout.** A lost key locks a technician out mid-support-call, and the recovery process itself becomes a social engineering target.
-- **Incomplete coverage and cost.** Older client systems may offer no MFA option, so the business must track which remain single-factor. FIDO2 keys cost roughly AU$50–80 each, with spares needed.
-
----
 
 ### 2.4 Control 3 — Transmission Confidentiality and Integrity (NIST SP 800-53: SC-8)
 
