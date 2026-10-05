@@ -460,6 +460,17 @@ The lab setup in Sections 2 to 4 simulates only part of the network. This sectio
 
 ### 5.1 Design
 
+The production network separates the business into four parts, each with its own subnet:
+
+- **Internet connection** — a business NBN service, terminating on the router/firewall.
+- **Router/firewall** — a single OpenWRT device providing routing, firewalling and NAT between the internal networks and the internet.
+- **Staff network** — the workstations used by the principal consultant, the two technicians and the administrative staff member, plus a shared network printer.
+- **Server network** — the web server hosting the public website, on a separate subnet from the staff workstations.
+- **Management network** — the router's management interface and the systems administrator's workstation.
+
+**Why the web server is separated.** The website is the only service deliberately exposed to the internet, which makes it the most likely component to be compromised. On its own subnet, an attacker who gains control of it is still separated by the firewall from the staff workstations where client records and credentials are held. On the staff network, compromising it would put the attacker directly alongside the business's most sensitive data.
+
+**Why management is separated.** This applies the principle of firewall rule 4 to the production design: the router's management interface is reachable only from the management subnet, so a compromised staff workstation cannot reach it at all.
 
 ![Production network diagram](images/production-network-diagram.png)
 
