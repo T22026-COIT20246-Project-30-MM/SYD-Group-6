@@ -121,7 +121,7 @@ NAT on `eth1` works differently. It allows OpenWRT to make outbound connections 
 
 ### 2.6 Lab Network Diagram
 
-
+The diagram below shows our lab setup: the OpenWRT VM, the Windows host, each interface, the IP addresses and the VirtualBox adapter type used by each.
 
 ![Lab network diagram](images/lab-network-diagram.png)
 
