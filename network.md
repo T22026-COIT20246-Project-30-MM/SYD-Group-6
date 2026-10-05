@@ -348,57 +348,7 @@ It is important to be clear about what this does not achieve. Changing the port 
 
 ### 4.3 Rule 3 — Block and Allow ICMP
 
-**Purpose.** ICMP echo requests are what `ping` uses. This rule blocks ping responses, making the device less visible to anyone scanning the network for live hosts.
 
-**Before — ping succeeds.**
-
-```
-Reply from 192.168.56.2: bytes=32 time<1ms TTL=64
-Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
-```
-
-![Ping succeeding before the rule](images/fw3-before.png)
-
-**The rule.**
-
-```sh
-uci set firewall.icmprule=rule
-uci set firewall.icmprule.name='Block-ICMP'
-uci set firewall.icmprule.src='lan'
-uci set firewall.icmprule.proto='icmp'
-uci set firewall.icmprule.icmp_type='echo-request'
-uci set firewall.icmprule.family='ipv4'
-uci set firewall.icmprule.target='DROP'
-uci commit firewall
-/etc/init.d/firewall restart
-```
-
-![Block ICMP rule](images/fw3-rule.png)
-
-We matched specifically on `icmp_type='echo-request'` rather than blocking all ICMP. ICMP also carries essential control messages such as "destination unreachable" and "fragmentation needed"; blocking it entirely can break path MTU discovery and cause connections to hang rather than fail cleanly.
-
-**After — ping fails.**
-
-```
-Request timed out.
-Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)
-```
-
-![Ping failing after the rule](images/fw3-after.png)
-
-We used `DROP` here rather than the `REJECT` used in rule 1, and the difference is visible: the pings time out and the command takes roughly 19 seconds instead of 3, because each request waits for a reply that never comes. With REJECT the router would send back a rejection and the failure would be immediate — but that reply would itself confirm a host is present at that address. DROP gives no response at all, which is the whole purpose of blocking ping.
-
-**Re-enabling ICMP.**
-
-```sh
-uci set firewall.icmprule.target='ACCEPT'
-uci commit firewall
-/etc/init.d/firewall restart
-```
-
-![Ping restored](images/fw3-restored.png)
-
-**How this contributes to network security.** Blocking ping slows the reconnaissance stage of an attack, since attackers usually begin by sweeping for hosts that respond. The protection is limited — a TCP or UDP port scan will find the router anyway, because it runs a web server and SSH — and there is a real cost: ping is the simplest diagnostic available, and blocking it makes troubleshooting harder for Westline's own administrator. Many networks therefore allow ICMP internally and block it only internet-facing.
 
 ### 4.4 Rule 4 — Restrict Management Interface Access
 
