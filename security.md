@@ -193,3 +193,16 @@ The vault also complements firewall rule 4 (`network.md` Section 4.4). That rule
 - **Adoption friction.** Technicians used to a saved browser password will find the vault slower. If it is inconvenient enough, staff will work around it by keeping local copies, which reintroduces exactly the vulnerability the control was meant to remove. Success depends as much on training and enforcement as on the software.
 
 ---
+### 2.3 Control 2 — Multi-Factor Authentication (NIST SP 800-53: IA-2(1))
+
+**Require a second authentication factor for the credential vault and for all administrative access to client systems.**
+
+#### How it reduces the risk
+
+Control 1 protects credentials while they are stored. Multi-factor authentication changes what a stolen credential is *worth*.
+
+With single-factor authentication, a captured password is immediately usable. With MFA, the attacker also needs something the user physically has — an authenticator app code or a hardware token. A password harvested by malware, phished through a fake login page, or captured from the network is no longer sufficient on its own.
+
+This directly reduces the likelihood of T2V1A1 being successfully exploited. It also mitigates **T2V2A1** (rank 5), where credentials could be intercepted in transit: an intercepted password without the second factor does not grant access.
+
+Critically, MFA on the vault itself answers the single-point-of-failure objection raised against Control 1.
