@@ -11,23 +11,6 @@ This section assesses the cyber security risks facing Westline IT Solutions, the
 
 ### 1.1 Method
 
-We used the TVAMatrix spreadsheet provided in this unit, which follows the qualitative approach in NIST SP 800-30. The completed file is in this repository as [`risk-assessment.xlsx`](risk-assessment.xlsx).
-
-We listed assets by type, paired each with the threats that could realistically affect it, described the specific vulnerability behind each pairing, and rated every pairing for Likelihood and Impact. Each pairing carries a TVA identifier such as `T2V1A1` — threat 2 exploiting vulnerability 1 against asset 1.
-
-**Likelihood** is how probable it is that the threat exploits the vulnerability over twelve months; **Impact** is the consequence if it does. Both use the same five-point scale from Very Low to Very High. Risk is not the two multiplied — the spreadsheet looks the pair up in this matrix on its `RiskValues` sheet:
-
-| Likelihood ↓ &nbsp; Impact → | Very Low | Low | Moderate | High | Very High |
-|---|---|---|---|---|---|
-| **Very High** | Very Low | Low | Moderate | High | **Very High** |
-| **High** | Very Low | Low | Moderate | High | **Very High** |
-| **Moderate** | Very Low | Low | Moderate | Moderate | High |
-| **Low** | Very Low | Low | Low | Low | Moderate |
-| **Very Low** | Very Low | Very Low | Very Low | Low | Low |
-
-The matrix is weighted towards impact: a near-certain threat causing trivial damage still resolves to Very Low, while a Very High risk needs a Very High impact *and* at least a High likelihood. The assessment therefore prioritises what would genuinely hurt the business over what merely happens often. The 35 entries are then ranked by risk, then impact, then likelihood, numbered 1 to 35 with no ties.
-
-**Worked example.** `T2V1A1` pairs *software attacks* with *client administrative credentials*; the vulnerability is that phishing or malware on a staff workstation can harvest stored client credentials. Likelihood **High** — phishing against IT providers is constant and automated. Impact **Very High** — those credentials unlock every client network, not just Westline's own. The matrix returns **Very High**, and the highest impact places it at rank 1.
 
 ### 1.2 Assets
 
