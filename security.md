@@ -145,3 +145,17 @@ The four Very High risks are:
 All four were rated High likelihood with Very High impact. They also describe the same underlying attack path: a staff workstation is compromised through phishing or malware, and from that foothold the attacker reaches credentials that unlock client networks. The assessment converges on one problem rather than four unrelated ones, which is what makes the control recommendations in Section 2 straightforward to prioritise.
 
 ---
+
+## 2. Recommended Security Controls
+
+### 2.1 The Selected Data Asset
+
+Our risk assessment ranks **Asset 1 — Client administrative credentials** as the highest risk, at **Very High** (Likelihood: High, Impact: Very High). It is both the highest-ranked data asset and the highest-ranked risk overall.
+
+**Why the impact is Very High.** These are the usernames, passwords and administrative accounts that Westline holds for its clients' servers, firewalls, and Microsoft 365 tenancies. Losing them does not expose one network — it exposes every client network the business administers. This is the supply chain attack pattern seen repeatedly against managed service providers, where compromising one provider gives access to dozens of downstream businesses. For Westline the consequences would include client data breaches, mandatory notification under Australian privacy law, immediate loss of client trust, and plausibly the end of the business.
+
+**Why the likelihood is High.** The credentials are currently stored on staff workstations, which are the most exposed devices in the business: they read email, browse the web, and are operated by non-specialists. Phishing is the most common initial access method against small businesses, and every one of our four Very High risks runs through a compromised workstation.
+
+The three controls below are selected from NIST SP 800-53 and address this asset at three different points: **at rest**, **in use**, and **in transit**.
+
+---
