@@ -67,15 +67,6 @@ This references the workstation compromise scenario used to justify firewall rul
 
 ### 1.4 TVA Matrix
 
-The TVAMatrix sheet is generated from the Vulnerabilities sheet and shows which threats were considered against which assets. We used it to check coverage before rating.
-
-![TVA Matrix — assets 1 to 9](images/tvamatrix-1.png)
-
-![TVA Matrix — assets 10 to 18](images/tvamatrix-2.png)
-
-![TVA Matrix — assets 19 to 26](images/tvamatrix-3.png)
-
-Every asset has at least one assessed vulnerability, and the data assets — the first six rows — carry the densest coverage.
 
 ### 1.5 Results
 
