@@ -65,3 +65,20 @@ The matrix is deliberately weighted towards impact. A threat that is almost cert
 Across our 35 entries we used likelihoods of High, Moderate and Low, and impacts of Very High, High and Moderate. We did not rate anything Very High likelihood or Very Low impact, because for a business of this size neither extreme was defensible for any of the pairings we identified.
 
 The assessment is scoped to the business described in our assumptions and to the network we designed and built in `network.md` and hardened in `harden.md`.
+
+### 1.2 Assets
+
+We identified **26 assets across all six asset types**, drawn directly from our own network design and assumptions:
+
+| Type | Count | Examples |
+|---|---|---|
+| **Data** | 6 | Client administrative credentials; client network documentation; client remote access details; client backup data; support tickets and client records; router root password and SSH private key |
+| Hardware | 4 | Router/firewall (OpenWRT); web server (51.1.20.10); five staff and sysadmin workstations; network printer (51.1.10.20) |
+| Software | 4 | OpenWRT firmware; uhttpd; Dropbear SSH server; dnsmasq |
+| Network | 4 | WAN link (53.10.1.0/24); staff LAN (51.1.10.0/24); server network (51.1.20.0/24); management network (51.1.30.0/24) |
+| People | 4 | Owner/principal consultant; two IT support technicians; administrative staff member; part-time systems administrator |
+| Processes | 4 | Handling client support requests; administering client systems; managing client backups; router administration over SSH |
+
+The hardware, network and software assets correspond to the devices, subnets and services documented in `network.md` Sections 2, 3 and 5 and `harden.md` Section 1.4. The people correspond to the five staff in our assumptions (`network.md` Section 1.3).
+
+The data assets reflect what an IT services provider actually holds. As argued in `network.md` Section 1.2, Westline stores administrative credentials, network documentation, remote access details and backup data belonging to its **client** businesses. This is what makes the business a more attractive target than an ordinary firm of its size.
