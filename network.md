@@ -11,13 +11,13 @@ The scenario does not state every detail about the business, so we have made the
 
 The business is located in Sydney, New South Wales, in a leased office on Level 2 of a small commercial building in Parramatta.
 
-We assume a single office in one location. This means the business needs only one local network, one internet connection and one router/firewall, with no links to branch offices. All staff work from this office, so we do not design for remote access or VPN connections.
+We assume a single office in one location, so the business needs only one local network, one internet connection and one router/firewall, with no links to branch offices. All staff work from this office, so we do not design for remote access or VPN connections.
 
 ### 1.2 Type of Professional Services
 
 The business, Westline IT Solutions, is a managed IT services provider. It supplies helpdesk and IT support, cloud and Microsoft 365 services, network and firewall installation, and cyber security services to other small businesses in the local area.
 
-This assumption matters for security because of the kind of data the business holds. As an IT services provider it stores administrative credentials, network documentation, remote access details and backup data belonging to its **client** businesses. This makes it a more attractive target than an ordinary small business of the same size: an attacker who compromises Westline does not gain access to one network, but potentially to every client network the business administers. This is the same pattern seen in real supply chain attacks on managed service providers. For this reason confidentiality of client credentials is the highest priority in our risk assessment.
+This matters for security because of the data the business holds. As an IT services provider it stores administrative credentials, network documentation, remote access details and backup data belonging to its **client** businesses. That makes it a more attractive target than an ordinary firm of the same size: an attacker who compromises Westline gains access not to one network but potentially to every client network it administers — the same pattern seen in real supply chain attacks on managed service providers. Confidentiality of client credentials is therefore the highest priority in our risk assessment.
 
 ### 1.3 Number of Staff and Their Roles
 
@@ -30,17 +30,15 @@ The business has 5 staff:
 | Administrative staff | 1 | Scheduling, invoicing and general correspondence |
 | Systems administrator (part-time) | 1 | Router, server and internal network administration |
 
-This gives 5 Windows workstations on the internal network, plus a shared network printer. Only the systems administrator needs to reach the router management interface, which is why we restrict management access rather than allowing it from every workstation on the network.
-
-The administrative staff member does not need access to client credentials or client systems, which supports applying least privilege across the internal network rather than giving all staff the same level of access.
+This gives 5 Windows workstations on the internal network plus a shared network printer. Only the systems administrator needs to reach the router management interface, which is why we restrict management access rather than allowing it from every workstation. The administrative staff member needs no access to client credentials or client systems, which supports applying least privilege across the internal network.
 
 ### 1.4 Website Content
 
 The website is a public information site only. It shows the business name, a description of the services offered, the office address and opening hours, and a contact phone number and email address.
 
-The website does not have client logins, a support ticket portal, file uploads, online payments, or a database, and it does not collect or store any personal information. We assume clients raise support requests by phone and email rather than through the website.
+It has no client logins, support ticket portal, file uploads, online payments or database, and collects no personal information. We assume clients raise support requests by phone and email.
 
-This assumption keeps the web server simple, since no database or user authentication is required. The website still needs protection: if it were defaced or taken offline, the business would lose credibility with existing clients and would appear untrustworthy to potential new clients. For a business that sells cyber security services, a visibly compromised website is especially damaging, so this is a reputational risk rather than a data breach risk but still a serious one.
+This keeps the web server simple, since no database or user authentication is required. The site still needs protection: if it were defaced or taken offline the business would lose credibility with existing clients and appear untrustworthy to new ones. For a business selling cyber security services a visibly compromised website is especially damaging — a reputational risk rather than a data breach risk, but a serious one.
 
 ## 2. Lab Network — OpenWRT and VirtualBox
 
@@ -48,7 +46,7 @@ This section documents the lab network we built using the OpenWRT VM provided in
 
 ### 2.1 OpenWRT Version
 
-We confirmed the identity of the VM provided in this unit with `cat /etc/openwrt_release` and `uname -a`.
+We confirmed the identity of the VM with `cat /etc/openwrt_release` and `uname -a`.
 
 ![OpenWRT version](images/openwrt-version.png)
 
@@ -72,21 +70,19 @@ We ran `ip addr` on the OpenWRT VM to list every interface and its address.
 
 | Interface | IP address | MAC address | VirtualBox adapter | Purpose |
 |---|---|---|---|---|
-| `lo` | 127.0.0.1/8 | — | — | Loopback, used only for traffic within the VM itself. |
-| `eth0` | *(none)* | 08:00:27:e4:b4:9d | Host-only Adapter | The physical port connecting to the Windows host. It has no address of its own because it is a member of the `br-mng` bridge. |
-| `eth1` | 10.0.3.15/24 | 08:00:27:59:19:60 | NAT | The WAN side. Provides outbound internet access through the Windows host's connection. |
-| `br-mng` | 192.168.56.2/24 | 08:00:27:e4:b4:9d | *(bridge over eth0)* | The management bridge. This is the address the Windows host uses to reach OpenWRT for the website, SSH, ping and the management interface. |
+| `lo` | 127.0.0.1/8 | — | — | Loopback, used only within the VM |
+| `eth0` | *(none)* | 08:00:27:e4:b4:9d | Host-only Adapter | The port connecting to the Windows host; no address of its own because it is a member of the `br-mng` bridge |
+| `eth1` | 10.0.3.15/24 | 08:00:27:59:19:60 | NAT | The WAN side, providing outbound internet access through the Windows host |
+| `br-mng` | 192.168.56.2/24 | 08:00:27:e4:b4:9d | *(bridge over eth0)* | The management bridge — the address the Windows host uses for the website, SSH, ping and the management interface |
 
-**Why `eth0` has no IP address.** `eth0` and `br-mng` share the same MAC address, `08:00:27:e4:b4:9d`. This shows that `eth0` is not an independent interface but a port bridged into `br-mng`. In a Linux bridge the member ports operate at layer 2 and carry no IP address of their own; the bridge interface holds the layer 3 address for the whole bridge. All traffic arriving on `eth0` from the Windows host is therefore handled by `br-mng` at 192.168.56.2.
+**Why `eth0` has no IP address.** `eth0` and `br-mng` share the same MAC address, `08:00:27:e4:b4:9d`. This shows `eth0` is not an independent interface but a port bridged into `br-mng`. In a Linux bridge the member ports operate at layer 2 and carry no IP address of their own; the bridge interface holds the layer 3 address for the whole bridge. All traffic arriving on `eth0` from the Windows host is therefore handled by `br-mng` at 192.168.56.2.
 
-**The two networks.** The VM has two separate networks, each with a different job:
+**The two networks.** Each has a different job:
 
 - **10.0.3.0/24 on `eth1` (NAT)** — outbound internet access, used for downloading packages with `opkg`. VirtualBox assigns `10.0.x.15` to NAT adapters, which identifies this as the NAT network.
-- **192.168.56.0/24 on `br-mng` (Host-only)** — the internal network between OpenWRT and the Windows host. This is the network that represents the small business LAN in our design, and every test in this report is performed over it.
+- **192.168.56.0/24 on `br-mng` (Host-only)** — the internal network between OpenWRT and the Windows host. This represents the small business LAN in our design, and every test in this report is performed over it.
 
 ### 2.3 Routing
-
-We checked the routing table with `ip route`:
 
 ```
 default via 10.0.3.2 dev eth1  src 10.0.3.15
@@ -96,7 +92,7 @@ default via 10.0.3.2 dev eth1  src 10.0.3.15
 
 ![ip route output](images/ip-route.png)
 
-This confirms how the two networks are used. The **default route** — the path for any traffic that is not destined for a directly connected network — goes out through `eth1` to 10.0.3.2, which is the VirtualBox NAT gateway. All internet-bound traffic therefore leaves over NAT. The 192.168.56.0/24 network is reached directly through `br-mng` with no gateway, because the Windows host is on the same subnet.
+The **default route** — the path for traffic not destined for a directly connected network — goes out through `eth1` to 10.0.3.2, the VirtualBox NAT gateway, so all internet-bound traffic leaves over NAT. The 192.168.56.0/24 network is reached directly through `br-mng` with no gateway, because the Windows host is on the same subnet.
 
 ### 2.4 VirtualBox Adapter Configuration
 
@@ -111,15 +107,15 @@ The VM is named "COIT20246 OpenWRT T2 2023" in VirtualBox, which is the image pr
 
 ![VirtualBox Adapter 2 — NAT](images/virtualbox-adapter2.png)
 
-**Matching the adapters to the interfaces.** We identified which VirtualBox adapter corresponds to which OpenWRT interface by comparing MAC addresses rather than assuming an order. Adapter 1 is configured with MAC `080027E4B49D`, which is the same MAC reported by `eth0` and by `br-mng` in the `ip addr` output. This confirms that Adapter 1, the host-only adapter, is the interface presented to OpenWRT as `eth0` and bridged into `br-mng` at 192.168.56.2. Adapter 2 is therefore `eth1`, which holds 10.0.3.15 — an address in the range VirtualBox uses for NAT.
+**Matching the adapters to the interfaces.** We identified which adapter corresponds to which interface by comparing MAC addresses rather than assuming an order. Adapter 1 carries MAC `080027E4B49D`, the same MAC reported by `eth0` and `br-mng` in the `ip addr` output, confirming that Adapter 1 — the host-only adapter — is presented to OpenWRT as `eth0` and bridged into `br-mng` at 192.168.56.2. Adapter 2 is therefore `eth1`, holding 10.0.3.15.
 
 ### 2.5 How the Windows Host Connects to OpenWRT
 
-The Windows host connects to OpenWRT over the **host-only network**, 192.168.56.0/24. VirtualBox creates a virtual adapter on the Windows host itself that sits on this network, so the host and the OpenWRT VM are on the same subnet and can reach each other directly. Running `ipconfig` on Windows shows this adapter, listed as "Ethernet adapter Ethernet 2", holding **192.168.56.1** with a 255.255.255.0 mask and no default gateway. OpenWRT holds **192.168.56.2** on `br-mng`.
+The Windows host connects over the **host-only network**, 192.168.56.0/24. VirtualBox creates a virtual adapter on the Windows host itself on this network, so the host and the VM are on the same subnet and reach each other directly. `ipconfig` shows this adapter as "Ethernet adapter Ethernet 2", holding **192.168.56.1** with a 255.255.255.0 mask and **no default gateway**. OpenWRT holds **192.168.56.2** on `br-mng`.
 
-The absence of a default gateway on that Windows adapter is expected and confirms the network is host-only: it exists purely to connect the host to the VM, and Windows continues to reach the internet through its Wi-Fi adapter on a separate network instead.
+The absence of a default gateway confirms the network is host-only: it exists purely to connect host to VM, and Windows reaches the internet through its Wi-Fi adapter on a separate network.
 
-The NAT network on `eth1` works differently. NAT allows OpenWRT to make outbound connections to the internet through the Windows host's own connection, but the Windows host cannot open a connection inwards to the VM across NAT, and the 10.0.3.15 address is not reachable from the host. This is the reason all of our testing — loading the website, connecting over SSH, sending ping requests and reaching the management interface — is carried out over the host-only network at 192.168.56.2 rather than over NAT.
+NAT on `eth1` works differently. It allows OpenWRT to make outbound connections through the Windows host's connection, but the host cannot open a connection inwards across NAT, and 10.0.3.15 is not reachable from it. This is why all of our testing — the website, SSH, ping and the management interface — is carried out over the host-only network at 192.168.56.2.
 
 ![Windows ipconfig](images/windows-ipconfig.png)
 
@@ -147,18 +143,18 @@ We set up a web server on OpenWRT to host a simple test website representing the
 
 ### 3.1 Web Server Configuration
 
-OpenWRT uses **uhttpd** as its web server. We examined its configuration with `cat /etc/config/uhttpd` and found that the VM runs two separate uhttpd instances:
+OpenWRT uses **uhttpd**. We examined `/etc/config/uhttpd` and found the VM runs two separate instances:
 
 | Instance | Port | Document root | Purpose |
 |---|---|---|---|
-| `main` | 81 | `/www` | The LuCI management web interface for administering the router |
+| `main` | 81 | `/www` | The LuCI management web interface |
 | `student` | 80 | `/srv/www` | A separate instance for hosting our own website |
 
 ![uhttpd configuration](images/uhttpd-config.png)
 
-Separating the two is useful for security. The business website is served to ordinary users on port 80, while router administration sits on a different port with its own document root. This means access to the management interface can be restricted by the firewall without affecting the public website, which is exactly what we do in firewall rule 4 (Section 4.4).
+Separating the two is useful for security: the business website is served to ordinary users on port 80, while router administration sits on a different port with its own document root. Management access can therefore be restricted by the firewall without affecting the public website, which is exactly what rule 4 does in Section 4.4.
 
-We confirmed both instances were listening using `netstat -ltn`:
+We confirmed both instances were listening with `netstat -ltn`:
 
 ```
 tcp    0    0 0.0.0.0:80     0.0.0.0:*    LISTEN
@@ -168,35 +164,33 @@ tcp    0    0 0.0.0.0:22     0.0.0.0:*    LISTEN
 
 ![netstat listening ports](images/netstat-ports.png)
 
-Port 80 is the website, port 81 is the management interface, and port 22 is SSH. These are the three services our firewall rules in Section 4 control.
+Port 80 is the website, 81 the management interface, 22 SSH — the three services our firewall rules control.
 
 ### 3.2 The Website
 
-We wrote the website in HTML and placed it at `/srv/www/index.html`, the document root of the `student` uhttpd instance. The page represents Westline IT Solutions and contains the business name, the services offered, the contact details and opening hours, and the project details including both of our full names, our student IDs, our group and the date the page was created.
+We wrote the website in HTML and placed it at `/srv/www/index.html`, the document root of the `student` instance. The page represents Westline IT Solutions and contains the business name, the services offered, the contact details and opening hours, and the project details including both of our full names, our student IDs, our group and the date the page was created.
 
-The content matches the assumptions in Section 1: it is a public information page only, with no client login, no file upload and no form that collects personal data.
+The content matches the assumptions in Section 1: a public information page only, with no client login, file upload or form collecting personal data.
 
 ![Test website in browser](images/website-browser.png)
 
 ![Test website — project details](images/website-details.png)
 
-The website is reachable from the Windows host at **http://192.168.56.2/** over the host-only network, which confirms that the web server is running and that the Windows host can reach services on OpenWRT.
+The website is reachable from the Windows host at **http://192.168.56.2/** over the host-only network.
 
 ### 3.3 Connectivity Test
 
-We confirmed basic network connectivity between the Windows host and OpenWRT with `ping`:
-
 ![Ping test](images/ping-test.png)
 
-A successful reply from 192.168.56.2 shows that the two machines are on the same host-only subnet and that ICMP traffic is permitted. This is the baseline behaviour we later change in firewall rule 3 (Section 4.3), where blocking ICMP causes this same ping to fail.
+A successful reply from 192.168.56.2 shows the two machines are on the same host-only subnet and that ICMP is permitted. This is the baseline we later change in firewall rule 3, where blocking ICMP causes this same ping to fail.
 
 ## 4. Firewall Configuration
 
-We configured and tested four firewall rules on OpenWRT. For each rule we show the behaviour before the rule, the firewall configuration itself, and the behaviour after the rule is applied.
+We configured and tested four firewall rules. For each we show the behaviour before the rule, the firewall configuration itself, and the behaviour after.
 
 ### 4.0 Preparation — Assigning the Management Network to a Firewall Zone
 
-Before writing any rules we examined the existing firewall configuration with `uci show firewall`. This revealed two problems that would have made our rules ineffective if we had not found them first.
+Before writing any rules we examined the existing configuration with `uci show firewall`. This revealed two problems that would have made our rules ineffective.
 
 **The default input policy is ACCEPT.**
 
@@ -206,11 +200,11 @@ firewall.@defaults[0].input='ACCEPT'
 
 ![Default firewall policy and zones](images/fw0-defaults.png)
 
-This means that, by default, the router accepts all incoming traffic directed at itself. This is why the website, SSH and ping all worked before we configured anything. It also means our first job is not to open services, but to restrict them.
+The router accepts all incoming traffic directed at itself, which is why the website, SSH and ping all worked before we configured anything. Our first job is therefore not to open services but to restrict them.
 
 **The management network was not in any firewall zone.**
 
-The firewall had two zones — `lan` (input ACCEPT) and `wan` (input REJECT) — but comparing them against `uci show network` showed a mismatch:
+The firewall had two zones — `lan` (input ACCEPT) and `wan` (input REJECT) — but comparing against `uci show network` showed a mismatch:
 
 ```
 network.mng.ipaddr = 192.168.56.2
@@ -221,11 +215,11 @@ network.wan.device = eth1
 
 ![Network interface configuration](images/network-config.png)
 
-The network carrying our host-only address 192.168.56.2 is named **`mng`**, not `lan`. The `lan` network is configured on `eth2`, a device that does not exist on this VM. Since the `lan` firewall zone covers only the `lan` network, the `mng` network belonged to no zone at all, and its traffic was being handled by the default ACCEPT policy.
+The network carrying 192.168.56.2 is named **`mng`**, not `lan`, and `lan` is configured on `eth2` — a device that does not exist on this VM. Since the `lan` zone covers only the `lan` network, `mng` belonged to no zone at all and was handled by the default ACCEPT policy.
 
-Had we written rules using `src='lan'`, they would have been applied to a non-existent interface. The rules would have appeared in the configuration, the firewall would have restarted without error, and the website would have continued to load — giving the false impression that the rule did not work, when in fact it was never matching our traffic.
+Had we written rules using `src='lan'` they would have applied to a non-existent interface. The rules would have appeared in the configuration, the firewall would have restarted without error, and the website would have kept loading — giving the false impression the rule did not work, when it was never matching our traffic at all.
 
-We therefore added the `mng` network to the `lan` firewall zone:
+We therefore added `mng` to the `lan` zone:
 
 ```sh
 uci add_list firewall.@zone[0].network='mng'
@@ -236,25 +230,23 @@ uci show firewall.@zone[0]
 
 ![Firewall zone configuration](images/fw0-zone.png)
 
-The zone now covers both networks:
-
 ```
 firewall.cfg02dc81.name='lan'
 firewall.cfg02dc81.network='lan' 'mng'
 firewall.cfg02dc81.input='ACCEPT'
 ```
 
-This change does not alter any behaviour on its own, because the zone's input policy is still ACCEPT. It simply means that rules written with `src='lan'` now match traffic arriving from the Windows host. All four rules below rely on this.
+This changes no behaviour on its own, since the zone's input policy is still ACCEPT. It simply means rules written with `src='lan'` now match traffic from the Windows host. All four rules below rely on it.
 
 ### 4.1 Rule 1 — Block and Allow HTTP
 
-**Purpose.** This rule controls whether the business website on port 80 can be reached from the internal network. Being able to block and restore HTTP access on demand means the business can take the website offline immediately if it is defaced or found to be vulnerable, without shutting down the router or the rest of the network.
+**Purpose.** This rule controls whether the business website on port 80 can be reached. Being able to block and restore HTTP on demand means the business can take the website offline immediately if it is defaced or found vulnerable, without shutting down the router or the rest of the network.
 
 **Before — the website loads normally.**
 
 ![HTTP before the rule](images/fw1-before.png)
 
-**The rule.** We created a named rule so that it can be modified later without depending on its position in the rule list:
+**The rule.** We created a named rule so it can be modified later without depending on its position in the list:
 
 ```sh
 uci set firewall.httprule=rule
@@ -271,11 +263,9 @@ uci commit firewall
 
 **After — the website is inaccessible.**
 
-The browser returns `ERR_CONNECTION_REFUSED` when loading http://192.168.56.2/.
-
 ![HTTP blocked](images/fw1-after.png)
 
-The error is *refused* rather than *timed out* because we used `REJECT` rather than `DROP`. REJECT sends an ICMP rejection back to the client, so the browser fails immediately. DROP would discard the packet silently and the browser would hang until it timed out. REJECT is more convenient on an internal network where fast feedback is useful; DROP is generally preferred on the internet-facing side, because silently discarding packets gives an attacker scanning the network no confirmation that anything is listening.
+The browser returns `ERR_CONNECTION_REFUSED`. The error is *refused* rather than *timed out* because we used `REJECT` rather than `DROP`: REJECT sends an ICMP rejection back so the browser fails immediately, while DROP discards the packet silently and the browser hangs until it times out. REJECT is convenient on an internal network where fast feedback is useful; DROP is generally preferred internet-facing, because silently discarding packets gives a scanning attacker no confirmation that anything is listening.
 
 **Changing the rule to allow HTTP.**
 
@@ -287,17 +277,17 @@ uci commit firewall
 
 ![HTTP restored](images/fw1-restored.png)
 
-The website loads again, confirming that access to the web server is controlled by this firewall rule.
+The website loads again, confirming access is controlled by this rule.
 
-**How this contributes to network security.** For Westline IT Solutions the public website is the one service deliberately exposed to users, and it is therefore the most likely target for attack. Controlling it with an explicit firewall rule means access is a deliberate decision rather than a side effect of a permissive default policy. Combined with a default-deny approach, this is the principle of least privilege applied at the network layer: only the services the business intends to offer are reachable.
+**How this contributes to network security.** The public website is the one service Westline deliberately exposes, and therefore the most likely target. Controlling it with an explicit rule makes access a deliberate decision rather than a side effect of a permissive default policy — least privilege applied at the network layer.
 
 ### 4.2 Rule 2 — Allow SSH and Change the Port
 
-**Purpose.** SSH is how the systems administrator manages the router remotely. This rule first permits SSH explicitly on the default port 22, then moves the service to the non-standard port 2222 and updates the firewall to match.
+**Purpose.** SSH is how the systems administrator manages the router remotely. This rule first permits SSH explicitly on port 22, then moves the service to the non-standard port 2222 and updates the firewall to match.
 
 **Before — SSH is reachable on port 22.**
 
-We connected from the Windows host using `ssh root@192.168.56.2`. The session opened and displayed the OpenWrt 22.03.3 banner, confirming both that SSH was working and that we were connecting to the VM provided in this unit.
+Connecting with `ssh root@192.168.56.2` opened a session showing the OpenWrt 22.03.3 banner, confirming both that SSH worked and that we were connecting to the VM provided in this unit.
 
 ![SSH working on port 22](images/fw2-before.png)
 
@@ -316,9 +306,7 @@ uci commit firewall
 
 ![Allow SSH on port 22](images/fw2-rule-22.png)
 
-**Moving SSH to port 2222.**
-
-Changing the port requires two separate changes, and both are necessary. The SSH service itself must be told to listen on the new port, and the firewall rule must be updated to permit it:
+**Moving SSH to port 2222.** Two changes are needed: the service must listen on the new port, and the firewall rule must permit it.
 
 ```sh
 uci set dropbear.@dropbear[0].Port='2222'
@@ -331,14 +319,14 @@ uci commit firewall
 /etc/init.d/firewall restart
 ```
 
-We verified with `netstat -ltn` that the service had actually moved rather than simply being reconfigured:
+`netstat -ltn` confirmed the service had actually moved:
 
 ```
 tcp    0    0 0.0.0.0:2222    0.0.0.0:*    LISTEN
 tcp    0    0 :::2222         :::*         LISTEN
 ```
 
-Port 22 no longer appears in the listening list at all.
+Port 22 no longer appears in the listening list.
 
 ![SSH moved to port 2222](images/fw2-rule-2222.png)
 
@@ -354,22 +342,18 @@ ssh -p 2222 root@192.168.56.2
 
 ![SSH port 22 refused, 2222 successful](images/fw2-after.png)
 
-**How this contributes to network security.** Port 22 is the first port an automated scanner tries, and internet-facing SSH services on port 22 receive constant brute-force login attempts. Moving SSH to 2222 removes almost all of that automated noise.
+**How this contributes to network security.** Port 22 is the first port an automated scanner tries, and internet-facing SSH on port 22 receives constant brute-force attempts. Moving to 2222 removes almost all of that automated noise.
 
-It is important to be clear about what this does and does not achieve. Changing the port is **security through obscurity**, not a genuine access control: an attacker who runs a full port scan will still find the service, and will see the SSH banner when they connect. The real benefit is a practical one — with the automated background noise removed, a login attempt in the logs is far more likely to be a real intrusion attempt and is therefore much easier to notice.
-
-For this reason the port change is only useful alongside a control that actually restricts access. In our project that control is SSH key-based authentication, configured in `harden.md`, which removes password logins altogether. The port change reduces the volume of attacks; key-based authentication is what stops them succeeding.
+It is important to be clear about what this does not achieve. Changing the port is **security through obscurity**, not an access control: a full port scan still finds the service, and the SSH banner is visible on connection. The real benefit is practical — with the background noise gone, a login attempt in the logs is far more likely to be a real intrusion and is much easier to notice. The port change is only useful alongside a control that actually restricts access, which in our project is the SSH key-based authentication in `harden.md`. The port change reduces the volume of attacks; key-based authentication is what stops them succeeding.
 
 ### 4.3 Rule 3 — Block and Allow ICMP
 
-**Purpose.** ICMP echo requests are what the `ping` command uses. This rule blocks ping responses from the router, making the device less visible to anyone scanning the network to discover live hosts.
+**Purpose.** ICMP echo requests are what `ping` uses. This rule blocks ping responses, making the device less visible to anyone scanning the network for live hosts.
 
 **Before — ping succeeds.**
 
 ```
-Pinging 192.168.56.2 with 32 bytes of data:
 Reply from 192.168.56.2: bytes=32 time<1ms TTL=64
-...
 Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
 ```
 
@@ -391,23 +375,18 @@ uci commit firewall
 
 ![Block ICMP rule](images/fw3-rule.png)
 
-We matched specifically on `icmp_type='echo-request'` rather than blocking all ICMP. ICMP carries more than just ping — it also carries essential control messages such as "destination unreachable" and "fragmentation needed". Blocking ICMP entirely can break path MTU discovery and cause connections to hang rather than fail cleanly, so blocking only the echo-request type stops ping without damaging normal traffic.
+We matched specifically on `icmp_type='echo-request'` rather than blocking all ICMP. ICMP also carries essential control messages such as "destination unreachable" and "fragmentation needed"; blocking it entirely can break path MTU discovery and cause connections to hang rather than fail cleanly.
 
 **After — ping fails.**
 
 ```
-Pinging 192.168.56.2 with 32 bytes of data:
 Request timed out.
-Request timed out.
-Request timed out.
-Request timed out.
-
 Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)
 ```
 
 ![Ping failing after the rule](images/fw3-after.png)
 
-We used `DROP` here rather than the `REJECT` used in rule 1, and the difference is visible in the result. The pings report "Request timed out" and the command takes roughly 19 seconds instead of 3, because each request waits for a reply that never arrives. With REJECT the router would send back an ICMP rejection message and the failure would be immediate — but that reply would itself confirm to an attacker that a host is present at that address. DROP gives no response of any kind, which is the whole purpose of blocking ping.
+We used `DROP` here rather than the `REJECT` used in rule 1, and the difference is visible: the pings time out and the command takes roughly 19 seconds instead of 3, because each request waits for a reply that never comes. With REJECT the router would send back a rejection and the failure would be immediate — but that reply would itself confirm a host is present at that address. DROP gives no response at all, which is the whole purpose of blocking ping.
 
 **Re-enabling ICMP.**
 
@@ -419,23 +398,21 @@ uci commit firewall
 
 ![Ping restored](images/fw3-restored.png)
 
-**How this contributes to network security.** Blocking ping slows down the reconnaissance stage of an attack. An attacker scanning a network usually begins by sweeping for hosts that respond to ping, and a device that does not reply may be skipped or take considerably longer to find.
-
-The protection is limited: a determined attacker will use a TCP or UDP port scan instead, which will find the router anyway because it is running a web server and SSH. There is also a real cost to the business. Ping is the simplest diagnostic tool available, and blocking it makes troubleshooting harder for Westline's own systems administrator. For this reason, many networks allow ICMP from the internal network, where it is useful, and block it only from the internet-facing side, where it mostly benefits attackers.
+**How this contributes to network security.** Blocking ping slows the reconnaissance stage of an attack, since attackers usually begin by sweeping for hosts that respond. The protection is limited — a TCP or UDP port scan will find the router anyway, because it runs a web server and SSH — and there is a real cost: ping is the simplest diagnostic available, and blocking it makes troubleshooting harder for Westline's own administrator. Many networks therefore allow ICMP internally and block it only internet-facing.
 
 ### 4.4 Rule 4 — Restrict Management Interface Access
 
-**Purpose.** The LuCI management web interface on port 81 gives complete control of the router — firewall rules, routing, passwords and all network settings. Under our assumptions only the systems administrator needs this access, not the consultants or administrative staff. Rather than blocking port 81 outright, we restricted it so that it is reachable only from the systems administrator's workstation.
+**Purpose.** The LuCI management interface on port 81 gives complete control of the router — firewall rules, routing, passwords and all network settings. Under our assumptions only the systems administrator needs it. Rather than blocking port 81 outright, we restricted it to the administrator's workstation.
 
 > Before applying this rule we kept the VirtualBox console session open, so that if we lost both SSH and web access we could still reach the VM and remove the rule.
 
 **Before — the management interface is reachable.**
 
-Loading `http://192.168.56.2:81/cgi-bin/luci/` from the Windows host displayed the LuCI "Authorization Required" login page, showing that any machine on the internal network could reach the router's administration interface.
+Loading `http://192.168.56.2:81/cgi-bin/luci/` displayed the LuCI login page, showing that any machine on the internal network could reach the router's administration interface.
 
 ![Management interface reachable](images/fw4-before.png)
 
-**The rules.** This restriction needs two rules working together, and the order they are created in matters because OpenWRT evaluates rules in sequence:
+**The rules.** This needs two rules working together, and the order matters because OpenWRT evaluates them in sequence:
 
 ```sh
 uci set firewall.mgmtallow=rule
@@ -459,9 +436,9 @@ uci commit firewall
 
 ![Management interface rules](images/fw4-rule.png)
 
-The first rule permits port 81 from the single address 192.168.56.10, which represents the systems administrator's workstation. The second rule rejects port 81 from everything else. Because the allow rule is evaluated first, the administrator's machine is permitted before the blanket rejection is reached. Reversing the order would reject every connection including the administrator's, and the exception would never take effect.
+The first rule permits port 81 from 192.168.56.10, the systems administrator's workstation; the second rejects port 81 from everything else. Because the allow rule is evaluated first, the administrator's machine is permitted before the blanket rejection is reached. Reversing the order would reject every connection including the administrator's.
 
-This is an **allow-list** approach: rather than naming the machines that are forbidden, we name the one machine that is permitted and refuse everything else by default. Any new workstation added to the office network is therefore denied management access automatically, with no further configuration.
+This is an **allow-list** approach: rather than naming the machines that are forbidden, we name the one that is permitted and refuse everything else by default, so any new workstation is denied management access automatically.
 
 **After — access is refused.**
 
@@ -469,14 +446,13 @@ Our Windows host at 192.168.56.1 represents an ordinary staff workstation, not t
 
 ![Management interface refused](images/fw4-after.png)
 
-The website on port 80 continues to load normally throughout, confirming that the restriction applies specifically to the management interface and does not affect the services the business intends to offer.
+The website on port 80 continues to load throughout, confirming the restriction applies specifically to the management interface.
 
 **How this contributes to network security.** This is the most important of the four rules for Westline IT Solutions. The company's highest-value asset is the administrative credentials it holds for client networks, and the router is the gateway through which client work is carried out.
 
-If a staff workstation were compromised — by a phishing email or malware, the most common entry point for a small business — the attacker would gain a foothold on the internal network. Without this rule, the malware could reach the router's administration interface and attempt to brute-force the login, alter firewall rules to open the network further, change DNS settings to redirect staff to fraudulent sites, or capture traffic. With the rule in place, the compromised workstation cannot even establish a connection to the management port, so the attacker's foothold is contained to that single machine.
+If a staff workstation were compromised by phishing or malware — the most common entry point for a small business — the attacker would gain a foothold on the internal network. Without this rule the malware could reach the router's administration interface and attempt to brute-force the login, alter firewall rules, change DNS settings to redirect staff to fraudulent sites, or capture traffic. With the rule in place the compromised workstation cannot even establish a connection to the management port, so the foothold is contained to that single machine.
 
-This is defence in depth: the login password protects the interface, and the firewall rule ensures that most attackers never reach the login prompt at all.
-
+This is defence in depth: the login password protects the interface, and the firewall rule ensures most attackers never reach the login prompt at all.
 
 ## 5. Production Network Design
 
@@ -486,19 +462,19 @@ The lab setup in Sections 2 to 4 simulates only part of the network. This sectio
 
 The production network separates the business into four parts, each with its own subnet:
 
-- **Internet connection** — a business NBN service from an ISP, terminating on the router/firewall.
-- **Router/firewall** — a single device running OpenWRT, providing routing, firewalling and network address translation between the internal networks and the internet.
-- **Staff network** — the workstations used by the principal consultant, the two IT support technicians and the administrative staff member, plus a shared network printer.
-- **Server network** — the web server hosting the public business website, on a separate subnet from the staff workstations.
-- **Management network** — a separate subnet containing the router's management interface and the systems administrator's workstation.
+- **Internet connection** — a business NBN service, terminating on the router/firewall.
+- **Router/firewall** — a single OpenWRT device providing routing, firewalling and NAT between the internal networks and the internet.
+- **Staff network** — the workstations used by the principal consultant, the two technicians and the administrative staff member, plus a shared network printer.
+- **Server network** — the web server hosting the public website, on a separate subnet from the staff workstations.
+- **Management network** — the router's management interface and the systems administrator's workstation.
 
-**Why the web server is separated.** The website is the only service deliberately exposed to the internet, which makes it the most likely component to be compromised. Placing it on its own subnet means that an attacker who gains control of the web server is still separated by the firewall from the staff workstations, where client records and credentials are held. If the web server were on the staff network, compromising it would put the attacker directly alongside the business's most sensitive data.
+**Why the web server is separated.** The website is the only service deliberately exposed to the internet, which makes it the most likely component to be compromised. On its own subnet, an attacker who gains control of it is still separated by the firewall from the staff workstations where client records and credentials are held. On the staff network, compromising it would put the attacker directly alongside the business's most sensitive data.
 
-**Why management is separated.** This applies the same principle as firewall rule 4 (Section 4.4) to the production design. The router's management interface is reachable only from the management subnet, so a compromised staff workstation cannot reach it at all.
+**Why management is separated.** This applies the principle of firewall rule 4 to the production design: the router's management interface is reachable only from the management subnet, so a compromised staff workstation cannot reach it at all.
 
 ![Production network diagram](images/production-network-diagram.png)
 
-Source file: [`images/production-network-diagram.drawio`](images/Production-Network-Diagram.drawio)
+Source file: [`images/Production-Network-Diagram.drawio`](images/Production-Network-Diagram.drawio)
 
 ### 5.2 IP Addressing Requirements
 
@@ -515,7 +491,7 @@ The addressing follows the requirements in Section 4.1.5 of the project specific
 | Server network | 51.1.20.0/24 | 255.255.255.0 | The public web server |
 | Management | 51.1.30.0/24 | 255.255.255.0 | Router management access |
 
-We used /24 subnets throughout. A /24 provides 254 usable addresses, which is far more than a five-person business needs, but it is the smallest mask permitted by the specification and it keeps the addressing simple to read. Using separate subnets rather than one flat network is what allows the firewall to control traffic between the staff, server and management areas.
+We used /24 subnets throughout. A /24 provides 254 usable addresses, far more than a five-person business needs, but it is the smallest mask the specification permits and it keeps the addressing simple. Using separate subnets rather than one flat network is what allows the firewall to control traffic between the staff, server and management areas.
 
 ### 5.3 Address Allocation
 
@@ -535,20 +511,20 @@ We used /24 subnets throughout. A /24 provides 254 usable addresses, which is fa
 | Router/firewall — management interface | Management | 51.1.30.1 | Management web interface on port 81 |
 | Systems administrator workstation | Management | 51.1.30.10 | The only device permitted to reach the management interface |
 
-Fixed addresses are used for the router interfaces, the web server, the printer and the systems administrator's workstation, because firewall rules refer to these addresses and would stop working correctly if they changed. The DHCP pool covers machines whose addresses do not matter to any rule.
+Fixed addresses are used for the router interfaces, the web server, the printer and the administrator's workstation, because firewall rules refer to these addresses and would stop working if they changed. The DHCP pool covers machines whose addresses do not matter to any rule.
 
 ### 5.4 How the Lab Setup Maps to the Production Design
 
 | Production component | How it is represented in the lab |
 |---|---|
 | Router/firewall | The OpenWRT VM |
-| Staff workstation | The Windows host connected over the host-only adapter at 192.168.56.1 |
-| Web server | The `student` uhttpd instance running on OpenWRT itself, on port 80 |
-| Management interface | The `main` uhttpd instance (LuCI) on port 81 |
-| Internet connection | The NAT adapter on `eth1`, giving OpenWRT outbound internet access |
+| Staff workstation | The Windows host at 192.168.56.1 |
+| Web server | The `student` uhttpd instance on OpenWRT, port 80 |
+| Management interface | The `main` uhttpd instance (LuCI), port 81 |
+| Internet connection | The NAT adapter on `eth1` |
 | Management network | The `br-mng` interface at 192.168.56.2 |
 
-The lab differs from the production design in two ways, both due to the resources available. First, the web server runs on the router itself rather than on a separate machine on its own subnet. Second, the staff, server and management networks are all simulated by the single 192.168.56.0/24 host-only network, so the separation between them is enforced by firewall rules on ports rather than by separate subnets. The firewall rules we configured in Section 4 demonstrate the same access controls that the production design would apply between subnets.
+The lab differs in two ways, both due to available resources: the web server runs on the router rather than a separate machine on its own subnet, and the staff, server and management networks are all simulated by the single 192.168.56.0/24 host-only network, so separation is enforced by firewall rules on ports rather than by separate subnets. The rules in Section 4 demonstrate the same access controls the production design would apply between subnets.
 
 ## 6. References
 
