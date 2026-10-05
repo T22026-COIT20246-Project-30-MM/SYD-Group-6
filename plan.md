@@ -1,7 +1,7 @@
 # Project Plan
 
 COIT20246 Cyber Security and Networking — Term 2, 2026
-SYD Group 6 — Atikur Rahman Mimmoy (12327451), Md Arman Joarder (12312653)
+SYD Group 6 — Md Atikur Rahman (12327451), Md Arman Joarder (12312653)
 
 ## Communication Plan
 
