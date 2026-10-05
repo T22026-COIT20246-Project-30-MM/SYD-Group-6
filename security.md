@@ -1,7 +1,7 @@
 # Risk Assessment and Security Controls
 
 COIT20246 Cyber Security and Networking — Term 2, 2026
-SYD Group 6 — Md Arman Joarder (12312653), Atikur Rahman Mimmoy (12327451)
+SYD Group 6 — Md Arman Joarder (12312653), Md Atikur Rahman (12327451)
 
 This section assesses the cyber security risks facing Westline IT Solutions, the managed IT services provider described in `network.md` Section 1, and recommends controls for the asset carrying the highest risk.
 
