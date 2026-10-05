@@ -60,7 +60,42 @@ The salt and hash are completely different and the date updated to the day we ma
 
 ### 1.2 Examine How Passwords Are Stored
 
+**What we found.** Passwords are stored in `/etc/shadow`, one account per line. The password field has three parts separated by `$`:
 
+```
+$1$wnfSwEHe$jqsqgLYsGmURGIMkAGzs0.
+ │     │              │
+ │     │              └─ the hash itself
+ │     └──────────────── the salt
+ └────────────────────── the algorithm identifier
+```
+
+**The hashing algorithm.** The prefix `$1$` identifies the algorithm:
+
+| Prefix | Algorithm | Assessment |
+|---|---|---|
+| `$1$` | MD5-crypt | Weak — what this VM uses |
+| `$5$` | SHA-256-crypt | Acceptable |
+| `$6$` | SHA-512-crypt | Current common default on Linux |
+| `$y$` | yescrypt | Modern, memory-hard |
+
+Our VM uses **MD5-crypt**, and it still used MD5-crypt for the *new* password set in Section 1.1. Changing the password improved the secret but did nothing to improve how that secret is stored.
+
+**Why passwords are stored as hashes rather than plaintext.** A hash function is one-way: easy to compute from a password, computationally infeasible to reverse. When a user logs in, the system hashes what they typed and compares — it never needs to know the actual password.
+
+This matters because files get stolen. If an attacker obtains `/etc/shadow` through a backup, a misconfigured share or a file-read vulnerability, plaintext passwords would hand them every account immediately, including any the staff had reused elsewhere. With hashes, each one has to be cracked.
+
+**What the salt does.** The salt, `wnfSwEHe` here, is a random value stored alongside the hash and mixed into the hashing. Two accounts with the same password therefore produce different hashes, and precomputed rainbow tables are defeated — an attacker would need a separate table for every possible salt.
+
+**Why MD5-crypt is a weakness.** The problem is not collisions, which matter for signatures rather than password storage. The problem is that MD5-crypt is **fast**: a fixed 1000 iterations, designed in the 1990s. Modern hardware computes millions of MD5 hashes per second, so a stolen `/etc/shadow` can be attacked at enormous rates. SHA-512-crypt is slower by design with a configurable iteration count, and yescrypt is also memory-hard, resisting GPU acceleration.
+
+The practical consequence is that the strength of the root password is doing all of the work, so we chose a long one — length is the main defence available against offline cracking.
+
+**A related weakness.** BusyBox `passwd` only *warns* about a weak password rather than rejecting it, and the device offers no password policy at all: no minimum length, complexity requirement or dictionary check. The system neither stores passwords in a form that resists cracking nor prevents a weak one being chosen. For a business deployment this would have to be enforced by organisational policy, and it strengthens the case for the key-based authentication configured in Section 1.3.
+
+**Accounts that cannot be logged into.** The remaining `/etc/shadow` entries are service accounts (`daemon`, `ftp`, `network`, `nobody`, `ntp`, `dnsmasq`, `logd`, `ubus`), each carrying `*` or `x` in the password field. Neither is a valid hash, so no input can ever match and the account cannot be used to log in. These accounts let services run under restricted identities rather than as root, limiting the damage if one is exploited. `root` is the only account with a real password.
+
+---
 
 ### 1.3 Set Up SSH Key-Based Authentication
 
