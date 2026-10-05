@@ -254,6 +254,117 @@ We captured traffic on the OpenWRT router using `tcpdump` and analysed it on the
 ---
 
 ### 2.1 Capture 1 — HTTP Traffic
+#### Taking the capture
+
+```sh
+tcpdump -i br-mng -s 0 -w /tmp/http-capture.pcap 'tcp port 80'
+```
+
+`-i br-mng` selects the interface facing the Windows host. `-s 0` sets an unlimited snapshot length so full packets are captured rather than just headers — without it the HTML payload would be truncated and the analysis below impossible. While the capture ran we loaded `http://192.168.56.2/?v=1` from Chrome.
+
+![tcpdump HTTP capture](images/capture1-tcpdump.png)
+
+```
+40 packets captured
+40 packets received by filter
+0 packets dropped by kernel
+```
+
+**A problem we had to solve.** Our first attempt produced a 5,475-byte file with no page content. The browser had the page cached, so it sent a conditional request and the server replied `304 Not Modified` with an empty body — the headers were captured but the HTML never crossed the network. Requesting a URL the browser had never seen, `?v=1`, forced a complete fetch; the file grew to 12,612 bytes and the content appeared.
+
+We verified the payload before moving to Wireshark, by searching the capture file directly:
+
+```sh
+grep -a "12312653" /tmp/http-capture.pcap
+```
+
+```
+<tr><th>Student 1</th><td>Md Arman Joarder &mdash; 12312653</td></tr>
+```
+
+A student ID typed into an HTML file was recoverable from the raw capture with a single text search, no analysis tool involved.
+
+#### Analysis in Wireshark
+
+![Transferring the captures](images/capture-transfer.png)
+
+![HTTP packet list in Wireshark](images/capture1-wireshark-list.png)
+
+Twelve of the forty packets are HTTP; the rest are TCP handshake and acknowledgements.
+
+| Packet | Direction | Content |
+|---|---|---|
+| 4 | .1 → .2 | `GET /?v=1 HTTP/1.1` |
+| 14 | .2 → .1 | `HTTP/1.1 200 OK (text/html)` — the full page |
+| 16 / 19 | both | `GET /favicon.ico` → `404 Not Found` |
+| 21–39 | both | Later `GET`s → `304 Not Modified` |
+
+#### The request
+
+![HTTP request in Wireshark](images/capture1-wireshark-request.png)
+
+Expanding packet 4 shows the full protocol stack, and every layer leaks something:
+
+| Layer | Field | Value |
+|---|---|---|
+| Ethernet | Source / destination MAC | `0a:00:27:00:00:13` → `08:00:27:e4:b4:9d` |
+| IPv4 | Source / destination IP | 192.168.56.1 → 192.168.56.2 |
+| TCP | Source / destination port | 9406 → 80 |
+| HTTP | Request URI | `http://192.168.56.2/?v=1` |
+| HTTP | Host header | `192.168.56.2` |
+| HTTP | User-Agent | `Mozilla/5.0 (Windows NT 10.0; Win64; x64) ... Chrome/153.0.0.0` |
+
+The destination MAC is the same address we identified as `br-mng` in `network.md` Section 2.2, confirming the traffic reaches the router over the host-only bridge.
+
+#### The response
+
+![HTTP response in Wireshark](images/capture1-wireshark-response.png)
+
+Packet 14 carries the reply. Wireshark reports `[5 Reassembled TCP Segments (5723 bytes)]` — the page was split across five TCP segments and reassembled. The headers show:
+
+```
+HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 5499
+Last-Modified: Fri, 25 Sep 2026 12:00:35 GMT
+```
+
+Even in the raw hex pane the ASCII column is directly readable, with no decoding required.
+
+#### Following the stream
+
+Right-clicking and selecting **Follow → HTTP Stream** reassembles the whole conversation: 6 client packets, 6 server packets, 9,651 bytes.
+
+![Following the HTTP stream](images/capture1-followstream.png)
+
+The complete page is readable, including the personalised project details:
+
+```html
+<tr><th>Student 1</th><td>Md Arman Joarder &mdash; 12312653</td></tr>
+<tr><th>Student 2</th><td>Atikur Rahman Mimmoy &mdash; 12327451</td></tr>
+<tr><th>Group</th><td>SYD Group 6</td></tr>
+<tr><th>Date created</th><td>25 September 2026</td></tr>
+```
+
+The business contact details are equally exposed, including the address, phone number and email.
+
+#### Security implications — what could an attacker learn?
+
+Anyone positioned to observe this traffic obtains the following with no cracking, guessing or specialist equipment:
+
+**The complete content of every page viewed.** Our page is public information, so the content itself is not confidential — but the principle generalises. HTTP provides no confidentiality whatsoever. If Westline later added a client portal over HTTP, every client record displayed would be exposed the same way.
+
+**Credentials, if any were used.** Our site has no login, but had it, the username and password would appear exactly as the HTML did. The same applies to session cookies — capture one and you can impersonate that user without knowing their password.
+
+**Who is talking to whom, and about what.** The IP and MAC addresses identify both machines, the URI shows which pages were requested, and the timing shows when.
+
+**What software the client is running.** The User-Agent volunteers Windows 10, 64-bit, Chrome 153. An attacker can look up known vulnerabilities for that exact version rather than guessing.
+
+**The ability to modify traffic, not just read it.** HTTP provides no integrity protection, so an attacker in the path can alter the response in transit — injecting a fake login form, adding malicious JavaScript, or changing bank details on an invoice. The browser cannot detect the change, because there is nothing to verify against.
+
+For a business selling cyber security services, serving its public site over plain HTTP is also a credibility problem: browsers show a "Not secure" warning, visible in our own screenshots.
+
+---
 
 
 ### 2.2 Capture 2 — SSH Traffic
