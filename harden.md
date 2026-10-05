@@ -1,7 +1,7 @@
 # Security Hardening and Traffic Analysis
 
 COIT20246 Cyber Security and Networking — Term 2, 2026
-SYD Group 6 — Md Arman Joarder (12312653), Atikur Rahman Mimmoy (12327451)
+SYD Group 6 — Md Arman Joarder (12312653), Md Atikur Rahman (12327451)
 
 All work in this section was carried out on the OpenWRT VM provided in this unit (OpenWrt 22.03.3, r20028-43d71ad93e), the same VM documented in `network.md`.
 
