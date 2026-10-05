@@ -15,7 +15,7 @@ We assume a single office in one location, so the business needs only one local 
 
 ### 1.2 Type of Professional Services
 
-The business, Westline IT Solutions, is a managed IT services provider. It supplies helpdesk and IT support, cloud and Microsoft 365 services, network and firewall installation, and cyber security services to other small businesses in the local area.
+
 
 This matters for security because of the data the business holds. As an IT services provider it stores administrative credentials, network documentation, remote access details and backup data belonging to its **client** businesses. That makes it a more attractive target than an ordinary firm of the same size: an attacker who compromises Westline gains access not to one network but potentially to every client network it administers — the same pattern seen in real supply chain attacks on managed service providers. Confidentiality of client credentials is therefore the highest priority in our risk assessment.
 
