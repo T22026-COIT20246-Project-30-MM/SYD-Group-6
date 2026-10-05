@@ -19,10 +19,6 @@ The screenshots below show the commit history for each group member, taken from 
 
 ![Arman's commits — October 5 to September 30](images/commits-arman-2.png)
 
-![Arman's commits — September 30 to September 28](images/commits-arman-3.png)
-
-![Arman's commits — September 29 to September 28](images/commits-arman-4.png)
-
 Both histories begin in week 5, pause through weeks 6 to 8, and resume from week 9 onward, with most of the project work falling in the final three weeks.
 
 ## 2. List of Tasks
