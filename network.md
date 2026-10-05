@@ -283,68 +283,7 @@ The website loads again, confirming access is controlled by this rule.
 
 ### 4.2 Rule 2 — Allow SSH and Change the Port
 
-**Purpose.** SSH is how the systems administrator manages the router remotely. This rule first permits SSH explicitly on port 22, then moves the service to the non-standard port 2222 and updates the firewall to match.
 
-**Before — SSH is reachable on port 22.**
-
-Connecting with `ssh root@192.168.56.2` opened a session showing the OpenWrt 22.03.3 banner, confirming both that SSH worked and that we were connecting to the VM provided in this unit.
-
-![SSH working on port 22](images/fw2-before.png)
-
-**Allowing SSH on port 22 explicitly.**
-
-```sh
-uci set firewall.sshrule=rule
-uci set firewall.sshrule.name='Allow-SSH'
-uci set firewall.sshrule.src='lan'
-uci set firewall.sshrule.proto='tcp'
-uci set firewall.sshrule.dest_port='22'
-uci set firewall.sshrule.target='ACCEPT'
-uci commit firewall
-/etc/init.d/firewall restart
-```
-
-![Allow SSH on port 22](images/fw2-rule-22.png)
-
-**Moving SSH to port 2222.** Two changes are needed: the service must listen on the new port, and the firewall rule must permit it.
-
-```sh
-uci set dropbear.@dropbear[0].Port='2222'
-uci commit dropbear
-/etc/init.d/dropbear restart
-
-uci set firewall.sshrule.name='Allow-SSH-2222'
-uci set firewall.sshrule.dest_port='2222'
-uci commit firewall
-/etc/init.d/firewall restart
-```
-
-`netstat -ltn` confirmed the service had actually moved:
-
-```
-tcp    0    0 0.0.0.0:2222    0.0.0.0:*    LISTEN
-tcp    0    0 :::2222         :::*         LISTEN
-```
-
-Port 22 no longer appears in the listening list.
-
-![SSH moved to port 2222](images/fw2-rule-2222.png)
-
-**After — port 22 is refused and port 2222 works.**
-
-```
-ssh root@192.168.56.2
-ssh: connect to host 192.168.56.2 port 22: Connection refused
-
-ssh -p 2222 root@192.168.56.2
-[successful login, OpenWrt 22.03.3 banner]
-```
-
-![SSH port 22 refused, 2222 successful](images/fw2-after.png)
-
-**How this contributes to network security.** Port 22 is the first port an automated scanner tries, and internet-facing SSH on port 22 receives constant brute-force attempts. Moving to 2222 removes almost all of that automated noise.
-
-It is important to be clear about what this does not achieve. Changing the port is **security through obscurity**, not an access control: a full port scan still finds the service, and the SSH banner is visible on connection. The real benefit is practical — with the background noise gone, a login attempt in the logs is far more likely to be a real intrusion and is much easier to notice. The port change is only useful alongside a control that actually restricts access, which in our project is the SSH key-based authentication in `harden.md`. The port change reduces the volume of attacks; key-based authentication is what stops them succeeding.
 
 ### 4.3 Rule 3 — Block and Allow ICMP
 
