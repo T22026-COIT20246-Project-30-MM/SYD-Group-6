@@ -193,6 +193,51 @@ We configured and tested four firewall rules. For each we show the behaviour bef
 Before writing any rules we examined the existing configuration with `uci show firewall`. This revealed two problems that would have made our rules ineffective.
 
 
+**The default input policy is ACCEPT.**
+
+```
+firewall.@defaults[0].input='ACCEPT'
+```
+
+![Default firewall policy and zones](images/fw0-defaults.png)
+
+The router accepts all incoming traffic directed at itself, which is why the website, SSH and ping all worked before we configured anything. Our first job is therefore not to open services but to restrict them.
+
+**The management network was not in any firewall zone.**
+
+The firewall had two zones — `lan` (input ACCEPT) and `wan` (input REJECT) — but comparing against `uci show network` showed a mismatch:
+
+```
+network.mng.ipaddr = 192.168.56.2
+network.mng.device = br-mng
+network.lan.device = eth2
+network.wan.device = eth1
+```
+
+![Network interface configuration](images/network-config.png)
+
+The network carrying 192.168.56.2 is named **`mng`**, not `lan`, and `lan` is configured on `eth2` — a device that does not exist on this VM. Since the `lan` zone covers only the `lan` network, `mng` belonged to no zone at all and was handled by the default ACCEPT policy.
+
+Had we written rules using `src='lan'` they would have applied to a non-existent interface. The rules would have appeared in the configuration, the firewall would have restarted without error, and the website would have kept loading — giving the false impression the rule did not work, when it was never matching our traffic at all.
+
+We therefore added `mng` to the `lan` zone:
+
+```sh
+uci add_list firewall.@zone[0].network='mng'
+uci commit firewall
+/etc/init.d/firewall restart
+uci show firewall.@zone[0]
+```
+
+![Firewall zone configuration](images/fw0-zone.png)
+
+```
+firewall.cfg02dc81.name='lan'
+firewall.cfg02dc81.network='lan' 'mng'
+firewall.cfg02dc81.input='ACCEPT'
+```
+
+This changes no behaviour on its own, since the zone's input policy is still ACCEPT. It simply means rules written with `src='lan'` now match traffic from the Windows host. All four rules below rely on it.
 ### 4.1 Rule 1 — Block and Allow HTTP
 
 **Purpose.** This rule controls whether the business website on port 80 can be reached. Being able to block and restore HTTP on demand means the business can take the website offline immediately if it is defaced or found vulnerable, without shutting down the router or the rest of the network.
