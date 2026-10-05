@@ -67,9 +67,9 @@ A commit count also says nothing about work that produces no file at all — rea
 | Term week | Dates | Commits | Who committed |
 |---|---|---|---|
 | 5 | 17–23 Aug | 2 | **Both** |
-| 6 | 24–30 Aug | 0 | — |
-| 7 | 31 Aug – 6 Sep | 0 | — |
-| 8 | 7–13 Sep | 0 | — |
+| 6 | 24–30 Aug | journal | — |
+| 7 | 31 Aug – 6 Sep | journal | — |
+| 8 | 7–13 Sep | journal | — |
 | 9 | 14–20 Sep | 3 | Arman |
 | 10 | 21–27 Sep | 8 | **Both** |
 | 11 | 28 Sep – 4 Oct | 30 | **Both** |
