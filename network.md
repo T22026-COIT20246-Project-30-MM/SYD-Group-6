@@ -495,7 +495,23 @@ We used /24 subnets throughout. A /24 provides 254 usable addresses, far more th
 
 ### 5.3 Address Allocation
 
+| Device | Network | IP address | Notes |
+|---|---|---|---|
+| ISP gateway | WAN link | 53.10.1.1 | Provided by the ISP |
+| Router/firewall — WAN interface | WAN link | 53.10.1.2 | Static address |
+| Router/firewall — staff interface | Staff LAN | 51.1.10.1 | Default gateway for staff workstations |
+| Owner / principal consultant | Staff LAN | 51.1.10.11 | |
+| IT support technician 1 | Staff LAN | 51.1.10.12 | |
+| IT support technician 2 | Staff LAN | 51.1.10.13 | |
+| Administrative staff | Staff LAN | 51.1.10.14 | |
+| Network printer | Staff LAN | 51.1.10.20 | Static address so it does not change |
+| DHCP pool | Staff LAN | 51.1.10.100 – 51.1.10.150 | For visiting laptops and replacement machines |
+| Router/firewall — server interface | Server network | 51.1.20.1 | Default gateway for the server network |
+| Web server | Server network | 51.1.20.10 | Hosts the public business website on port 80 |
+| Router/firewall — management interface | Management | 51.1.30.1 | Management web interface on port 81 |
+| Systems administrator workstation | Management | 51.1.30.10 | The only device permitted to reach the management interface |
 
+Fixed addresses are used for the router interfaces, the web server, the printer and the administrator's workstation, because firewall rules refer to these addresses and would stop working if they changed. The DHCP pool covers machines whose addresses do not matter to any rule.
 
 ### 5.4 How the Lab Setup Maps to the Production Design
 
